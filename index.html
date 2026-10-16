@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rishit’s Stereo</title>
+<meta name="description" content="Rishit’s Stereo — a personal music player.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="assets/cover-dark-100.png">
+<link rel="apple-touch-icon" href="assets/cover-dark-350.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anta&family=Anton&family=Karla:wght@400;500&family=Manufacturing+Consent&family=Parkinsans:wght@300;600;700&family=Quicksand:wght@400&family=Roboto+Mono:wght@700&display=swap">
+<link rel="preload" as="image" href="assets/cover-dark-100.png">
+<link rel="stylesheet" href="style.css">
+
+<script>
+  /* apply the saved theme before the page paints (no flash) */
+  try {
+    var t = JSON.parse(localStorage.getItem('stereo.theme'));
+    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#000000');
+  } catch (e) {}
+</script>
+</head>
+
+<body>
+
+<!-- ============================ ICON SPRITE ============================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></symbol>
+    <symbol id="i-rew" viewBox="0 0 24 24"><polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/></symbol>
+    <symbol id="i-ff" viewBox="0 0 24 24"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></symbol>
+    <symbol id="i-vol" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-circleplay" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  </defs>
+</svg>
+
+<div id="app" data-view="list">
+
+  <!-- ============================== SIDEBAR ============================== -->
+  <aside id="sidebar" aria-label="Your library">
+    <div class="brand">
+      <a class="logo" id="logo" href="#" aria-label="Rishit’s Stereo — home">
+        <span class="logo-ring" aria-hidden="true"></span>
+        <span class="logo-name">Rishit’s</span>
+        <span class="logo-sub">Stereo</span>
+      </a>
+      <button class="panel-btn sb-close" id="sbClose" type="button" aria-label="Close sidebar">
+        <svg class="ico"><use href="#i-panel"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" aria-label="Collections">
+      <p class="nav-label">YOUR LIBRARY</p>
+      <ul id="nav">
+        <li><button type="button" class="nav-item" data-col="all"><svg class="ico i-s"><use href="#i-music"/></svg><span>All Tracks</span></button></li>
+        <li><button type="button" class="nav-item" data-col="phonk"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>Phonk</span></button></li>
+        <li><button type="button" class="nav-item" data-col="english"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>English &amp; Other</span></button></li>
+        <li><button type="button" class="nav-item" data-col="hindi"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>Hindi/Gujarati</span></button></li>
+        <li><button type="button" class="nav-item" data-col="instrumental"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>Instrumental</span></button></li>
+        <li><button type="button" class="nav-item" data-col="devotional"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>Devotional</span></button></li>
+        <li><button type="button" class="nav-item" data-col="recent"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>Recently Played</span></button></li>
+        <li><button type="button" class="nav-item" data-col="liked"><svg class="ico i-s"><use href="#i-heart"/></svg><span>Liked Songs</span></button></li>
+        <li><button type="button" class="nav-item" data-col="np"><svg class="ico i-s"><use href="#i-play"/></svg><span>Now Playing</span></button></li>
+      </ul>
+      <button type="button" class="add-btn" id="addBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Add song</span></button>
+    </nav>
+  </aside>
+  <div id="backdrop" aria-hidden="true"></div>
+
+  <!-- =============================== TOP BAR ============================== -->
+  <header id="topbar">
+    <button class="panel-btn sb-open" id="sbOpen" type="button" aria-label="Open sidebar">
+      <svg class="ico"><use href="#i-panel"/></svg>
+    </button>
+    <label class="search">
+      <svg class="ico"><use href="#i-search"/></svg>
+      <input id="search" type="search" placeholder="Search your library..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search your library">
+    </label>
+    <button class="circle-btn theme-btn" id="themeBtn" type="button" aria-label="Switch theme">
+      <svg class="ico t-sun"><use href="#i-sun"/></svg>
+      <svg class="ico t-moon"><use href="#i-moon"/></svg>
+    </button>
+    <div class="avatar" aria-hidden="true">RM</div>
+  </header>
+
+  <!-- ================================ MAIN ================================ -->
+  <main id="main">
+
+    <!-- ---------- song list ---------- -->
+    <section id="listView" class="view" aria-label="Songs">
+      <div class="coll-head col">
+        <p class="coll-label">COLLECTION</p>
+        <h1 class="coll-title" id="collTitle">All Tracks</h1>
+      </div>
+      <div id="listScroll" class="list-scroll">
+        <ol id="list" class="list col"></ol>
+        <p id="empty" class="empty" hidden></p>
+      </div>
+    </section>
+
+    <!-- ---------- now playing ---------- -->
+    <section id="npView" class="view" aria-label="Now playing" hidden>
+      <div class="np-scroll">
+        <div class="np-top">
+          <button class="circle-btn" id="npBack" type="button" aria-label="Back"><svg class="ico i-chev"><use href="#i-chev"/></svg></button>
+          <span class="np-label">NOW PLAYING</span>
+          <div class="np-actions">
+            <button class="circle-btn" id="npDelete" type="button" aria-label="Remove this song" hidden><svg class="ico i-act"><use href="#i-trash"/></svg></button>
+            <button class="circle-btn" id="npShare" type="button" aria-label="Share"><svg class="ico i-act"><use href="#i-share"/></svg></button>
+            <button class="circle-btn like-btn" id="npLike" type="button" aria-label="Like" aria-pressed="false"><svg class="ico i-act"><use href="#i-heart"/></svg></button>
+          </div>
+        </div>
+
+        <div class="np-body">
+          <div class="np-art"><div class="np-art-img" id="npArt" role="img" aria-label="Album art"></div></div>
+
+          <div class="np-info">
+            <p class="listening">LISTENING NOW</p>
+            <h2 class="np-title" id="npTitle">—</h2>
+            <p class="np-genre" id="npGenre">—</p>
+
+            <div class="np-seek">
+              <input class="range seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek" data-seek>
+            </div>
+            <span class="time" id="npTime">0:00</span>
+
+            <div class="np-controls">
+              <button type="button" class="ctl ctl-skip" data-act="prev" aria-label="Previous"><svg class="ico"><use href="#i-prev"/></svg></button>
+              <button type="button" class="ctl ctl-seek" data-act="rew" aria-label="Back 10 seconds"><svg class="ico"><use href="#i-rew"/></svg></button>
+              <button type="button" class="ctl ctl-play" data-act="toggle" aria-label="Play / pause">
+                <svg class="ico fill i-pl"><use href="#i-play"/></svg>
+                <svg class="ico fill i-pa"><use href="#i-pause"/></svg>
+              </button>
+              <button type="button" class="ctl ctl-seek" data-act="ff" aria-label="Forward 10 seconds"><svg class="ico"><use href="#i-ff"/></svg></button>
+              <button type="button" class="ctl ctl-skip" data-act="next" aria-label="Next"><svg class="ico"><use href="#i-next"/></svg></button>
+            </div>
+
+            <div class="np-extra">
+              <button type="button" class="ext ext-vol" data-act="mute" aria-label="Mute"><svg class="ico v-on"><use href="#i-vol"/></svg><svg class="ico v-off"><use href="#i-mute"/></svg></button>
+              <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
+              <span class="grow"></span>
+              <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat this song" aria-pressed="false"><svg class="ico"><use href="#i-repeat"/></svg></button>
+              <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================ BOTTOM PLAYER =========================== -->
+  <footer id="player" aria-label="Player">
+    <div class="pl-left" data-act="expand" role="button" tabindex="0" aria-label="Open now playing">
+      <span class="thumb" id="plThumb"></span>
+      <span class="pl-meta"><span class="pl-title" id="plTitle">—</span><span class="pl-genre" id="plGenre">—</span></span>
+    </div>
+
+    <div class="pl-center">
+      <div class="pl-controls">
+        <button type="button" class="ctl ctl-skip" data-act="prev" aria-label="Previous"><svg class="ico"><use href="#i-prev"/></svg></button>
+        <button type="button" class="ctl ctl-seek" data-act="rew" aria-label="Back 10 seconds"><svg class="ico"><use href="#i-rew"/></svg></button>
+        <button type="button" class="ctl ctl-play" data-act="toggle" aria-label="Play / pause">
+          <svg class="ico fill i-pl"><use href="#i-play"/></svg>
+          <svg class="ico fill i-pa"><use href="#i-pause"/></svg>
+        </button>
+        <button type="button" class="ctl ctl-seek" data-act="ff" aria-label="Forward 10 seconds"><svg class="ico"><use href="#i-ff"/></svg></button>
+        <button type="button" class="ctl ctl-skip" data-act="next" aria-label="Next"><svg class="ico"><use href="#i-next"/></svg></button>
+      </div>
+      <span class="time" id="plTime">0:00</span>
+      <input class="range seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek" data-seek>
+    </div>
+
+    <div class="pl-right">
+      <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat this song" aria-pressed="false"><svg class="ico"><use href="#i-repeat"/></svg></button>
+      <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
+      <button type="button" class="ext ext-vol" data-act="mute" aria-label="Mute"><svg class="ico v-on"><use href="#i-vol"/></svg><svg class="ico v-off"><use href="#i-mute"/></svg></button>
+      <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
+      <button type="button" class="ext ext-expand" data-act="expand" aria-label="Open now playing"><svg class="ico"><use href="#i-expand"/></svg></button>
+    </div>
+  </footer>
+</div>
+
+<!-- ============================ SLEEP TIMER ============================ -->
+<div class="modal" id="sleepModal" hidden role="dialog" aria-modal="true" aria-labelledby="sleepTitle">
+  <div class="sheet sleep-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">SLEEP TIMER</p>
+    <h2 class="sheet-title" id="sleepTitle">Stop the music after…</h2>
+
+    <div class="sleep-active" id="sleepActive" hidden>
+      <span>Stopping in <b id="sleepLeft">00:00:00</b></span>
+      <button type="button" id="sleepCancel">Cancel timer</button>
+    </div>
+
+    <div class="chips" id="sleepChips">
+      <button type="button" class="chip" data-h="1"><b>1</b><span>hour</span></button>
+      <button type="button" class="chip" data-h="2"><b>2</b><span>hours</span></button>
+      <button type="button" class="chip" data-h="3"><b>3</b><span>hours</span></button>
+      <button type="button" class="chip" data-h="5"><b>5</b><span>hours</span></button>
+    </div>
+
+    <hr class="sheet-rule">
+    <p class="eyebrow">CUSTOM TIME</p>
+    <form class="custom" id="sleepForm" autocomplete="off">
+      <label class="field"><input id="cHr" type="number" inputmode="numeric" min="0" max="23" placeholder="0" aria-label="Hours"><span>hr</span></label>
+      <label class="field"><input id="cMin" type="number" inputmode="numeric" min="0" max="59" placeholder="0" aria-label="Minutes"><span>min</span></label>
+      <button class="start-btn" type="submit">Start</button>
+    </form>
+    <p class="form-note" id="sleepNote" hidden></p>
+  </div>
+</div>
+
+<!-- ============================== ADD SONG ============================== -->
+<div class="modal" id="addModal" hidden role="dialog" aria-modal="true" aria-labelledby="addTitle">
+  <div class="sheet add-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">ADD SONG</p>
+    <h2 class="sheet-title" id="addTitle">Where should it go?</h2>
+
+    <div class="file-card" id="fileCard">
+      <span class="file-ico"><svg class="ico"><use href="#i-file"/></svg></span>
+      <span class="file-txt"><b id="fileName">song.mp3</b><small id="fileMeta"></small></span>
+    </div>
+
+    <label class="name-field" id="nameField">
+      <span class="eyebrow">SONG NAME</span>
+      <input id="songName" type="text" maxlength="80" placeholder="Song name" autocomplete="off">
+    </label>
+
+    <p class="eyebrow">CATEGORY</p>
+    <div class="cats" id="catChips" role="radiogroup" aria-label="Category">
+      <button type="button" class="cat" role="radio" data-cat="phonk" aria-checked="false">Phonk</button>
+      <button type="button" class="cat" role="radio" data-cat="english" aria-checked="false">English &amp; Other</button>
+      <button type="button" class="cat" role="radio" data-cat="hindi" aria-checked="false">Hindi/Gujarati</button>
+      <button type="button" class="cat" role="radio" data-cat="instrumental" aria-checked="false">Instrumental</button>
+      <button type="button" class="cat" role="radio" data-cat="devotional" aria-checked="false">Devotional</button>
+    </div>
+
+    <div class="sheet-actions">
+      <button type="button" class="ghost-btn" data-close>Cancel</button>
+      <button type="button" class="start-btn" id="addConfirm">Add to library</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="audio/mpeg,audio/mp3,audio/*,.mp3" multiple hidden>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<audio id="audio" preload="metadata" playsinline></audio>
+
+<script src="songs.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
