@@ -47,7 +47,7 @@
     col: 'all', query: '', view: 'list',
     queue: [], cur: null,
     liked: new Set(store.get('liked', [])),
-    playlists: store.get('playlists', []), // [{id, name, songs: [id,...]}]
+    playlists: store.get('playlists', []),
     recent: store.get('recent', []),
     repeat: !!store.get('repeat', false),
     vol: Math.min(1, Math.max(0, Number(store.get('vol', 0.9)))),
@@ -129,14 +129,14 @@
   function renderList(resetScroll) {
     const songs = visibleSongs();
     listEl.innerHTML = songs.map(rowHtml).join('');
-    {
+    (() => {
       let title = COL_TITLES[S.col] || 'Collection';
       if (String(S.col).startsWith('pl:')) {
         const pl = S.playlists.find(p => p.id === S.col.slice(3));
         title = pl ? pl.name : 'Playlist';
       }
       $('#collTitle').textContent = S.query.trim() ? 'Search' : title;
-    }
+    })();
     if (!songs.length) {
       emptyEl.textContent = S.query.trim() ? EMPTY_MSG.search : (EMPTY_MSG[S.col] || EMPTY_MSG.cat);
       emptyEl.hidden = false;
@@ -404,7 +404,6 @@
       a.remove();
       toast('Download started');
     } catch (e) {
-      // Fallback: open the file URL
       try { window.open(s.src, '_blank', 'noopener'); } catch (e2) {}
       toast('Opening song file…');
     }
@@ -633,6 +632,102 @@
     else if (e.key === 'MediaTrackPrevious') prev();
   });
 
+
+  /* ----------------------------- playlists -------------------------------- */
+  function savePlaylists() { store.set('playlists', S.playlists); }
+
+  function renderPlaylistNav() {
+    $$('.nav-item[data-col^="pl:"]').forEach(el => {
+      const li = el.closest('li');
+      if (li) li.remove();
+    });
+    const slot = $('#playlistNavSlot');
+    if (!slot || !S.playlists.length) return;
+    const frag = document.createDocumentFragment();
+    S.playlists.forEach(pl => {
+      const li = document.createElement('li');
+      li.innerHTML = '<button type="button" class="nav-item" data-col="pl:' + pl.id + '"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>' + esc(pl.name) + '</span></button>';
+      frag.appendChild(li);
+    });
+    slot.parentNode.insertBefore(frag, slot.nextSibling);
+    syncNav();
+  }
+
+  function openCreatePlaylist() {
+    const box = $('#plSongList');
+    if (!box) return;
+    box.innerHTML = lib.map(s =>
+      '<button type="button" class="pl-song-opt" data-sid="' + s.id + '" aria-pressed="false">' +
+      '<span class="check" aria-hidden="true"></span><span>' + esc(s.title) + '</span></button>'
+    ).join('');
+    $('#plName').value = '';
+    openModal($('#plModal'));
+    setTimeout(() => { try { $('#plName').focus(); } catch (e) {} }, 40);
+  }
+
+  $('#playlistBtn').addEventListener('click', () => { closeSidebar(); openCreatePlaylist(); });
+
+  $('#plSongList').addEventListener('click', e => {
+    const b = e.target.closest('.pl-song-opt');
+    if (!b) return;
+    b.classList.toggle('on');
+    b.setAttribute('aria-pressed', String(b.classList.contains('on')));
+    const chk = b.querySelector('.check');
+    if (chk) chk.textContent = b.classList.contains('on') ? '✓' : '';
+  });
+
+  $('#plConfirm').addEventListener('click', () => {
+    const name = ($('#plName').value || '').trim() || 'My playlist';
+    const ids = $$('#plSongList .pl-song-opt.on').map(b => b.dataset.sid);
+    const id = 'p' + Date.now().toString(36);
+    S.playlists.push({ id: id, name: name, songs: ids });
+    savePlaylists();
+    renderPlaylistNav();
+    closeModal($('#plModal'));
+    toast('Playlist “' + name + '” created');
+    go('pl:' + id);
+  });
+
+  function openAddToPlaylist(songId) {
+    const s = libMap.get(songId);
+    if (!s) return;
+    if (!S.playlists.length) {
+      toast('Create a playlist first');
+      openCreatePlaylist();
+      return;
+    }
+    $('#atpSong').textContent = s.title;
+    $('#plTargets').innerHTML = S.playlists.map(pl => {
+      const has = pl.songs.indexOf(songId) >= 0;
+      return '<button type="button" class="pl-target" data-pid="' + pl.id + '" data-sid="' + songId + '">' +
+        '<span>' + esc(pl.name) + '</span><span class="meta">' +
+        (has ? 'In playlist · tap to remove' : (pl.songs.length + ' songs · tap to add')) +
+        '</span></button>';
+    }).join('');
+    openModal($('#addToPlModal'));
+  }
+
+  $('#plTargets').addEventListener('click', e => {
+    const b = e.target.closest('.pl-target');
+    if (!b) return;
+    const pl = S.playlists.find(p => p.id === b.dataset.pid);
+    if (!pl) return;
+    const sid = b.dataset.sid;
+    const i = pl.songs.indexOf(sid);
+    if (i >= 0) { pl.songs.splice(i, 1); toast('Removed from “' + pl.name + '”'); }
+    else { pl.songs.push(sid); toast('Added to “' + pl.name + '”'); }
+    savePlaylists();
+    openAddToPlaylist(sid);
+    if (String(S.col) === 'pl:' + pl.id) renderList(false);
+  });
+
+  $('#npPlaylist').addEventListener('click', () => {
+    if (!S.cur) { toast('Nothing is playing'); return; }
+    openAddToPlaylist(S.cur);
+  });
+
+  renderPlaylistNav();
+
   /* ---------------------------------- boot -------------------------------- */
   async function boot() {
     applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
@@ -654,97 +749,4 @@
     updateProgress();
   }
   boot();
-
-  /* ----------------------------- playlists -------------------------------- */
-  function savePlaylists() { store.set('playlists', S.playlists); }
-
-  function renderPlaylistNav() {
-    // Remove old dynamic playlist items
-    $$('.nav-item[data-col^="pl:"]').forEach(el => el.closest('li')?.remove());
-    const slot = $('#playlistNavSlot');
-    if (!slot) return;
-    if (!S.playlists.length) { slot.hidden = true; return; }
-    slot.hidden = true; // we insert siblings after slot
-    const frag = document.createDocumentFragment();
-    S.playlists.forEach(pl => {
-      const li = document.createElement('li');
-      li.innerHTML = `<button type="button" class="nav-item" data-col="pl:${pl.id}"><svg class="ico i-s"><use href="#i-circleplay"/></svg><span>${esc(pl.name)}</span></button>`;
-      frag.appendChild(li);
-    });
-    slot.parentNode.insertBefore(frag, slot.nextSibling);
-    syncNav();
-  }
-
-  function openCreatePlaylist() {
-    const box = $('#plSongList');
-    box.innerHTML = lib.map(s =>
-      `<button type="button" class="pl-song-opt" data-sid="${s.id}" aria-pressed="false">` +
-      `<span class="check" aria-hidden="true"></span><span>${esc(s.title)}</span></button>`
-    ).join('');
-    $('#plName').value = '';
-    openModal($('#plModal'));
-    setTimeout(() => $('#plName').focus(), 50);
-  }
-
-  $('#playlistBtn')?.addEventListener('click', () => { closeSidebar(); openCreatePlaylist(); });
-
-  $('#plSongList')?.addEventListener('click', e => {
-    const b = e.target.closest('.pl-song-opt');
-    if (!b) return;
-    b.classList.toggle('on');
-    b.setAttribute('aria-pressed', b.classList.contains('on'));
-    const chk = b.querySelector('.check');
-    if (chk) chk.textContent = b.classList.contains('on') ? '✓' : '';
-  });
-
-  $('#plConfirm')?.addEventListener('click', () => {
-    const name = ($('#plName').value || '').trim() || 'My playlist';
-    const ids = $$('#plSongList .pl-song-opt.on').map(b => b.dataset.sid);
-    const id = 'p' + Date.now().toString(36);
-    S.playlists.push({ id, name, songs: ids });
-    savePlaylists();
-    renderPlaylistNav();
-    closeModal($('#plModal'));
-    toast(`Playlist “${name}” created`);
-    go('pl:' + id);
-  });
-
-  function openAddToPlaylist(songId) {
-    const s = libMap.get(songId);
-    if (!s) return;
-    if (!S.playlists.length) {
-      toast('Create a playlist first');
-      openCreatePlaylist();
-      return;
-    }
-    $('#atpSong').textContent = s.title;
-    $('#plTargets').innerHTML = S.playlists.map(pl => {
-      const has = pl.songs.includes(songId);
-      return `<button type="button" class="pl-target" data-pid="${pl.id}" data-sid="${songId}">` +
-        `<span>${esc(pl.name)}</span><span class="meta">${has ? 'In playlist · tap to remove' : pl.songs.length + ' songs · tap to add'}</span></button>`;
-    }).join('');
-    openModal($('#addToPlModal'));
-  }
-
-  $('#plTargets')?.addEventListener('click', e => {
-    const b = e.target.closest('.pl-target');
-    if (!b) return;
-    const pl = S.playlists.find(p => p.id === b.dataset.pid);
-    if (!pl) return;
-    const sid = b.dataset.sid;
-    const i = pl.songs.indexOf(sid);
-    if (i >= 0) { pl.songs.splice(i, 1); toast('Removed from “' + pl.name + '”'); }
-    else { pl.songs.push(sid); toast('Added to “' + pl.name + '”'); }
-    savePlaylists();
-    openAddToPlaylist(sid); // refresh labels
-    if (String(S.col) === 'pl:' + pl.id) renderList(false);
-  });
-
-  $('#npPlaylist')?.addEventListener('click', () => {
-    if (!S.cur) { toast('Nothing is playing'); return; }
-    openAddToPlaylist(S.cur);
-  });
-
-  renderPlaylistNav();
-
 })();
