@@ -19,12 +19,32 @@
 
 <meta name="theme-color" content="#000000">
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Rishit-1010/Stereo/main/favicon.ico">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Rishit-1010/Stereo/main/favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stereo">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 
+<link rel="preconnect" href="https://raw.githubusercontent.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anta&family=Anton&family=Karla:wght@400;500&family=Manufacturing+Consent&family=Parkinsans:wght@300;600;700&family=Quicksand:wght@400&family=Roboto+Mono:wght@700&display=swap">
-<link rel="preload" as="image" href="https://raw.githubusercontent.com/Rishit-1010/Stereo/main/favicon.ico">
+
+<script>
+  /* Load every logo and cover from the GitHub repo as soon as the site opens,
+     for both themes, so switching theme or opening Now Playing never waits on an image. */
+  (function () {
+    var RAW = 'https://raw.githubusercontent.com/Rishit-1010/Stereo/main/';
+    var FILES = ['Logo.png', 'Logo1.png', 'Cover.png', 'Cover2.png', 'CoverBig.png', 'CoverBig1.png', 'favicon.ico'];
+    window.__stereoImages = FILES.map(function (f) {
+      var img = new Image();
+      img.decoding = 'async';
+      img.src = RAW + f;
+      return img; /* kept on window so the browser keeps them cached/decoded */
+    });
+  })();
+</script>
 <link rel="stylesheet" href="style.css">
 
 <script>
@@ -68,6 +88,7 @@
     <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
   </defs>
 </svg>
 
@@ -100,6 +121,8 @@
       </ul>
       <button type="button" class="add-btn" id="addBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Add song</span></button>
       <button type="button" class="add-btn playlist-btn" id="playlistBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Create new playlist</span></button>
+      <!-- shown only where the player can be installed (hidden once installed, and inside the Android/desktop apps) -->
+      <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install app</span></button>
     </nav>
   </aside>
   <div id="backdrop" aria-hidden="true"></div>
@@ -113,6 +136,7 @@
       <svg class="ico"><use href="#i-search"/></svg>
       <input id="search" type="search" placeholder="Search your library..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search your library">
     </label>
+    <button class="circle-btn install-top" id="installTop" type="button" aria-label="Install app" title="Install app" hidden><svg class="ico"><use href="#i-download"/></svg></button>
     <button class="circle-btn theme-btn" id="themeBtn" type="button" aria-label="Switch theme">
       <svg class="ico t-sun"><use href="#i-sun"/></svg>
       <svg class="ico t-moon"><use href="#i-moon"/></svg>
@@ -127,7 +151,16 @@
     <section id="listView" class="view" aria-label="Songs">
       <div class="coll-head col">
         <p class="coll-label">COLLECTION</p>
-        <h1 class="coll-title" id="collTitle">All Tracks</h1>
+        <div class="coll-row">
+          <h1 class="coll-title" id="collTitle">All Tracks</h1>
+          <!-- both buttons are shown only on playlists a visitor created; never on All Tracks, Phonk, Liked Songs, etc. -->
+          <button type="button" class="add-pl" id="plAddSongs" aria-label="Add songs to this playlist" hidden>
+            <svg class="ico"><use href="#i-plus"/></svg><span>Add songs</span>
+          </button>
+          <button type="button" class="del-pl" id="plDelete" aria-label="Delete this playlist" hidden>
+            <svg class="ico"><use href="#i-trash"/></svg><span>Delete playlist</span>
+          </button>
+        </div>
       </div>
       <div id="listScroll" class="list-scroll">
         <ol id="list" class="list col"></ol>
@@ -282,17 +315,32 @@
 </div>
 
 
-<!-- =========================== CREATE PLAYLIST =========================== -->
-<div class="modal" id="plModal" hidden role="dialog" aria-modal="true" aria-labelledby="plTitle">
+<!-- ============================= INSTALL APP ============================= -->
+<div class="modal" id="installModal" hidden role="dialog" aria-modal="true" aria-labelledby="installTitle">
   <div class="sheet add-sheet">
     <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
-    <p class="eyebrow">NEW PLAYLIST</p>
-    <h2 class="sheet-title" id="plTitle">Create playlist</h2>
-    <label class="name-field">
+    <p class="eyebrow">INSTALL APP</p>
+    <h2 class="sheet-title" id="installTitle">Add Stereo to your device</h2>
+    <p class="form-note install-lead" id="installLead"></p>
+    <ol class="install-steps" id="installSteps"></ol>
+    <div class="sheet-actions">
+      <button type="button" class="start-btn" data-close>Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================== CREATE PLAYLIST =========================== -->
+<div class="modal" id="plModal" hidden role="dialog" aria-modal="true" aria-labelledby="plModalTitle">
+  <div class="sheet add-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow" id="plEyebrow">NEW PLAYLIST</p>
+    <h2 class="sheet-title" id="plModalTitle">Create playlist</h2>
+    <label class="name-field" id="plNameField">
       <span class="eyebrow">PLAYLIST NAME</span>
       <input id="plName" type="text" maxlength="40" placeholder="My playlist" autocomplete="off">
     </label>
     <p class="eyebrow">PICK SONGS</p>
+    <p class="pl-pick-hint" id="plPickHint">Select songs in the order you want them to play. The numbers show that order.</p>
     <div class="pl-song-list" id="plSongList" role="group" aria-label="Songs to include"></div>
     <div class="sheet-actions">
       <button type="button" class="ghost-btn" data-close>Cancel</button>

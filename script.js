@@ -28,11 +28,15 @@
   };
 
   /* ------------------------------- library -------------------------------- */
-  const BASE = window.RELEASE_BASE || '';
+  const REPO_RAW = 'https://raw.githubusercontent.com/Rishit-1010/Stereo/main/';
+  /* songs.js uses paths like tracks/X.mp3; inside the Android/desktop apps they are loaded from the website */
+  const SITE = 'https://rishit-1010.github.io/Stereo/';
+  const toUrl = u => (/^(https?:)?\/\//.test(u) || !(window.StereoAndroid || window.stereoDesktop)) ? u : SITE + u;
   const defaults = (window.SONGS || []).map((s, i) => ({
     id: 'd' + String(i + 1).padStart(2, '0'),
     title: s.t, cat: s.c, genre: s.g,
-    src: /^(https?:)?\/\//.test(s.f) || s.f.startsWith('/') ? s.f : BASE + encodeURIComponent(s.f),
+    src: toUrl(s.f),
+    alt: s.r ? toUrl(s.r) : null, /* fallback link, tried once if the main file fails to load */
     user: false
   }));
   let userSongs = [];
@@ -113,10 +117,16 @@
     return list.filter(s => s.title.toLowerCase().includes(q) || s.genre.toLowerCase().includes(q));
   }
 
+  function isPlaylistReorderable() {
+    return String(S.col).startsWith('pl:') && !S.query.trim();
+  }
+
   function rowHtml(s, i) {
     const on = S.liked.has(s.id);
     const playing = s.id === S.cur;
-    return `<li class="row${playing ? ' playing' : ''}" data-id="${s.id}" tabindex="0" role="button" aria-label="Play ${esc(s.title)}">` +
+    const canDrag = isPlaylistReorderable();
+    return `<li class="row${playing ? ' playing' : ''}${canDrag ? ' can-drag' : ''}" data-id="${s.id}" tabindex="0" role="button" aria-label="Play ${esc(s.title)}">` +
+      (canDrag ? `<span class="grip" aria-hidden="true" title="Drag to reorder"><svg class="ico"><use href="#i-grip"/></svg></span>` : '') +
       `<span class="num">${pad2(i + 1)}</span>` +
       `<span class="thumb" aria-hidden="true"></span>` +
       `<span class="title">${esc(s.title)}</span>` +
@@ -125,6 +135,117 @@
       `<button class="rplay" type="button" data-play="${s.id}" aria-label="Play / pause"><svg class="ico fill i-pl"><use href="#i-play"/></svg><svg class="ico fill i-pa"><use href="#i-pause"/></svg></button>` +
       `</li>`;
   }
+
+  let reorder = null;
+  let scrollRaf = 0;
+
+  function placePlaceholder(clientY) {
+    const ph = reorder.placeholder;
+    const rows = [...listEl.children].filter(el => el.classList.contains('row') && !el.classList.contains('row-placeholder') && el !== reorder.row);
+    let before = null;
+    for (const sib of rows) {
+      const r = sib.getBoundingClientRect();
+      if (clientY < r.top + r.height / 2) { before = sib; break; }
+    }
+    if (before) {
+      if (ph.nextElementSibling !== before) listEl.insertBefore(ph, before);
+    } else if (listEl.lastElementChild !== ph) {
+      listEl.appendChild(ph);
+    }
+  }
+
+  function commitPlaylistOrder() {
+    const pl = S.playlists.find(p => 'pl:' + p.id === S.col);
+    if (!pl) return;
+    pl.songs = [...listEl.querySelectorAll('.row:not(.row-placeholder)')].map(r => r.dataset.id).filter(Boolean);
+    savePlaylists();
+    $$('.row:not(.row-placeholder) .num', listEl).forEach((el, i) => { el.textContent = pad2(i + 1); });
+    if (S.queue.length) setQueueFromView();
+  }
+
+  function endReorder(commit) {
+    if (!reorder) return;
+    const { row, placeholder, moved } = reorder;
+    cancelAnimationFrame(scrollRaf);
+    scrollRaf = 0;
+    document.removeEventListener('pointermove', onReorderMove);
+    document.removeEventListener('pointerup', onReorderEnd);
+    document.removeEventListener('pointercancel', onReorderEnd);
+    if (placeholder.parentNode) placeholder.parentNode.insertBefore(row, placeholder);
+    placeholder.remove();
+    row.classList.remove('row-float');
+    row.style.cssText = '';
+    listEl.classList.remove('is-sorting');
+    document.body.classList.remove('is-sorting');
+    reorder = null;
+    if (commit && moved) {
+      commitPlaylistOrder();
+      const stopClick = (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        document.removeEventListener('click', stopClick, true);
+      };
+      document.addEventListener('click', stopClick, true);
+    }
+  }
+
+  function onReorderMove(e) {
+    if (!reorder || e.pointerId !== reorder.pointerId) return;
+    e.preventDefault();
+    reorder.moved = true;
+    reorder.lastY = e.clientY;
+    reorder.row.style.top = (e.clientY - reorder.offsetY) + 'px';
+    placePlaceholder(e.clientY);
+  }
+
+  function onReorderEnd(e) {
+    if (!reorder || e.pointerId !== reorder.pointerId) return;
+    endReorder(true);
+  }
+
+  function scrollWhileReordering() {
+    if (!reorder) return;
+    const y = reorder.lastY;
+    if (y != null) {
+      const box = listScroll.getBoundingClientRect();
+      const edge = 64;
+      if (y < box.top + edge) listScroll.scrollTop -= Math.max(4, Math.ceil((box.top + edge - y) / 3));
+      else if (y > box.bottom - edge) listScroll.scrollTop += Math.max(4, Math.ceil((y - (box.bottom - edge)) / 3));
+      placePlaceholder(y);
+    }
+    scrollRaf = requestAnimationFrame(scrollWhileReordering);
+  }
+
+  listEl.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('.grip');
+    if (!grip || !isPlaylistReorderable() || reorder) return;
+    if (e.button != null && e.button !== 0) return;
+    const row = grip.closest('.row');
+    if (!row) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = row.getBoundingClientRect();
+    const placeholder = document.createElement('li');
+    placeholder.className = 'row row-placeholder';
+    placeholder.style.height = rect.height + 'px';
+    placeholder.setAttribute('aria-hidden', 'true');
+    row.parentNode.insertBefore(placeholder, row);
+    row.classList.add('row-float');
+    row.style.position = 'fixed';
+    row.style.left = rect.left + 'px';
+    row.style.top = rect.top + 'px';
+    row.style.width = rect.width + 'px';
+    row.style.height = rect.height + 'px';
+    row.style.margin = '0';
+    row.style.zIndex = '80';
+    reorder = { pointerId: e.pointerId, row, placeholder, offsetY: e.clientY - rect.top, lastY: e.clientY, moved: false };
+    listEl.classList.add('is-sorting');
+    document.body.classList.add('is-sorting');
+    document.addEventListener('pointermove', onReorderMove, { passive: false });
+    document.addEventListener('pointerup', onReorderEnd);
+    document.addEventListener('pointercancel', onReorderEnd);
+    scrollRaf = requestAnimationFrame(scrollWhileReordering);
+  });
 
   function renderList(resetScroll) {
     const songs = visibleSongs();
@@ -142,6 +263,10 @@
       emptyEl.hidden = false;
     } else emptyEl.hidden = true;
     if (resetScroll) listScroll.scrollTop = 0;
+    /* "Add songs" and "Delete playlist" appear only on playlists a visitor created (pl:…), never on built-in collections */
+    const onPlaylist = String(S.col).startsWith('pl:') && !S.query.trim();
+    $('#plAddSongs').hidden = !onPlaylist;
+    $('#plDelete').hidden = !onPlaylist;
     syncNav();
   }
 
@@ -207,6 +332,7 @@
     if (!s) return;
     const changed = S.cur !== id || !audio.src;
     S.cur = id;
+    S.wantPlay = !!autoplay;
     store.set('last', id);
     if (changed) { audio.src = s.src; audio.load(); }
     syncNow();
@@ -223,7 +349,7 @@
   }
   function failed() {
     const s = libMap.get(S.cur);
-    toast(`Couldn’t load “${s ? s.title : 'this song'}”. Check its file link in songs.js.`, 4500);
+    toast(`Couldn’t load “${s ? s.title : 'this song'}”. Check that its file is in the tracks folder.`, 4500);
   }
 
   function togglePlay() {
@@ -257,6 +383,7 @@
   }
 
   listEl.addEventListener('click', e => {
+    if (e.target.closest('.grip')) { e.preventDefault(); e.stopPropagation(); return; }
     const like = e.target.closest('[data-like]');
     if (like) { e.stopPropagation(); toggleLike(like.dataset.like); return; }
     const row = e.target.closest('.row');
@@ -287,7 +414,18 @@
   audio.addEventListener('timeupdate', updateProgress);
   audio.addEventListener('durationchange', () => { updateProgress(); updatePosition(); });
   audio.addEventListener('loadedmetadata', updateProgress);
-  audio.addEventListener('error', () => { if (audio.src) failed(); });
+  audio.addEventListener('error', () => {
+    if (!audio.src) return;
+    const s = libMap.get(S.cur);
+    if (s && s.alt && !s.triedAlt) {
+      /* main file missing: try the fallback link once */
+      s.triedAlt = true; s.src = s.alt;
+      audio.src = s.alt; audio.load();
+      if (S.wantPlay) playAudio();
+      return;
+    }
+    failed();
+  });
 
   /* progress bars */
   let raf = 0;
@@ -393,17 +531,40 @@
   $('#npDownload').addEventListener('click', async () => {
     const s = libMap.get(S.cur);
     if (!s) { toast('Nothing is playing'); return; }
-    try {
+    const name = (s.title || 'song').replace(/[^\w\s\-\.]+/g, '').trim() + '.mp3';
+    const save = href => {
       const a = document.createElement('a');
-      a.href = s.src;
-      a.download = (s.title || 'song').replace(/[^\w\s\-\.]+/g, '').trim() + '.mp3';
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = href; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+    };
+    try {
+      if (s.user && window.StereoAndroid) {
+        toast('Songs you added are already stored on this phone', 2600);
+        return;
+      } else if (s.user) {
+        save(s.src); /* blob: URL from this device — saves directly */
+      } else if (window.StereoAndroid) {
+        /* Android app: saves to the phone's Downloads folder */
+        window.StereoAndroid.download(s.src, name);
+      } else if (window.stereoDesktop) {
+        /* desktop app: native "Save as" dialog, no cross-origin limits */
+        const r = await window.stereoDesktop.download(s.src, name);
+        if (!r || !r.ok) {
+          if (r && r.state === 'cancelled') { toast('Download cancelled', 1800); return; }
+          throw new Error('desktop download failed');
+        }
+      } else {
+        /* the download attribute is ignored on cross-origin links, so fetch the file and save it as a blob */
+        toast('Preparing download…', 2000);
+        const res = await fetch(s.src);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const url = URL.createObjectURL(await res.blob());
+        save(url);
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }
       toast('Download started');
     } catch (e) {
+      /* e.g. the host blocks cross-origin reads — fall back to opening the file */
       try { window.open(s.src, '_blank', 'noopener'); } catch (e2) {}
       toast('Opening song file…');
     }
@@ -428,9 +589,9 @@
     if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
     const s = libMap.get(S.cur); if (!s) return;
     const light = document.documentElement.getAttribute('data-theme') === 'light';
-    const art = new URL(light ? 'assets/cover-light.png' : 'assets/cover-dark.png', location.href).href;
+    const art = REPO_RAW + (light ? 'CoverBig1.png' : 'CoverBig.png');
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.genre, album: 'Rishit’s Stereo', artwork: [{ src: art, sizes: '700x700', type: 'image/png' }] });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.genre, album: 'Rishit’s Stereo', artwork: [{ src: art, sizes: '350x350', type: 'image/png' }] });
     } catch (e) {}
   }
   function updatePosition() {
@@ -653,32 +814,104 @@
     syncNav();
   }
 
+  let plPickOrder = [];
+  let plEditId = null; /* null = creating a new playlist; otherwise the id of the playlist songs are being added to */
+  const PL_HINT_CREATE = 'Select songs in the order you want them to play. The numbers show that order.';
+
+  const pickRowsHtml = songs => songs.map(s =>
+    '<button type="button" class="pl-song-opt" data-sid="' + s.id + '" aria-pressed="false">' +
+    '<span class="check" aria-hidden="true"></span><span>' + esc(s.title) + '</span></button>'
+  ).join('');
+
+  function syncPlPickMarks() {
+    $$('#plSongList .pl-song-opt').forEach(b => {
+      const chk = b.querySelector('.check');
+      const i = plPickOrder.indexOf(b.dataset.sid);
+      if (i >= 0) {
+        b.classList.add('on');
+        b.setAttribute('aria-pressed', 'true');
+        if (chk) chk.textContent = String(i + 1);
+      } else {
+        b.classList.remove('on');
+        b.setAttribute('aria-pressed', 'false');
+        if (chk) chk.textContent = '';
+      }
+    });
+  }
+
   function openCreatePlaylist() {
     const box = $('#plSongList');
     if (!box) return;
-    box.innerHTML = lib.map(s =>
-      '<button type="button" class="pl-song-opt" data-sid="' + s.id + '" aria-pressed="false">' +
-      '<span class="check" aria-hidden="true"></span><span>' + esc(s.title) + '</span></button>'
-    ).join('');
+    plPickOrder = [];
+    plEditId = null;
+    box.innerHTML = pickRowsHtml(lib);
+    $('#plEyebrow').textContent = 'NEW PLAYLIST';
+    $('#plModalTitle').textContent = 'Create playlist';
+    $('#plNameField').hidden = false;
+    $('#plPickHint').textContent = PL_HINT_CREATE;
+    $('#plConfirm').textContent = 'Create';
     $('#plName').value = '';
     openModal($('#plModal'));
     setTimeout(() => { try { $('#plName').focus(); } catch (e) {} }, 40);
   }
+
+  /* same song picker, opened on an existing playlist: only songs that aren't in it yet are offered */
+  function openAddSongsToPlaylist(plId) {
+    const pl = S.playlists.find(p => p.id === plId);
+    const box = $('#plSongList');
+    if (!pl || !box) return;
+    const have = new Set(pl.songs);
+    const options = lib.filter(s => !have.has(s.id));
+    if (!options.length) { toast('Every song is already in “' + pl.name + '”'); return; }
+    plPickOrder = [];
+    plEditId = plId;
+    box.innerHTML = pickRowsHtml(options);
+    box.scrollTop = 0;
+    $('#plEyebrow').textContent = 'ADD SONGS';
+    $('#plModalTitle').textContent = 'Add to “' + pl.name + '”';
+    $('#plNameField').hidden = true;
+    $('#plPickHint').textContent = 'Songs already in this playlist aren’t shown. Select songs in the order you want them added.';
+    $('#plConfirm').textContent = 'Add';
+    openModal($('#plModal'));
+  }
+
+  $('#plAddSongs').addEventListener('click', () => {
+    const col = String(S.col);
+    if (!col.startsWith('pl:')) return; /* only viewer-created playlists */
+    openAddSongsToPlaylist(col.slice(3));
+  });
 
   $('#playlistBtn').addEventListener('click', () => { closeSidebar(); openCreatePlaylist(); });
 
   $('#plSongList').addEventListener('click', e => {
     const b = e.target.closest('.pl-song-opt');
     if (!b) return;
-    b.classList.toggle('on');
-    b.setAttribute('aria-pressed', String(b.classList.contains('on')));
-    const chk = b.querySelector('.check');
-    if (chk) chk.textContent = b.classList.contains('on') ? '✓' : '';
+    const sid = b.dataset.sid;
+    const i = plPickOrder.indexOf(sid);
+    if (i >= 0) plPickOrder.splice(i, 1);
+    else plPickOrder.push(sid);
+    syncPlPickMarks();
   });
 
   $('#plConfirm').addEventListener('click', () => {
+    if (plEditId) {
+      const pl = S.playlists.find(p => p.id === plEditId);
+      if (!pl) { closeModal($('#plModal')); return; }
+      const fresh = plPickOrder.filter(id => libMap.has(id) && pl.songs.indexOf(id) < 0);
+      if (!fresh.length) { toast('Pick at least one song to add'); return; }
+      const before = pl.songs.slice();
+      pl.songs = before.concat(fresh);
+      savePlaylists();
+      closeModal($('#plModal'));
+      plEditId = null;
+      /* if this playlist is what's currently queued, let "next" reach the new songs too */
+      if (S.queue.length === before.length && before.every((id, i) => S.queue[i] === id)) S.queue = pl.songs.slice();
+      if (String(S.col) === 'pl:' + pl.id) renderList(false);
+      toast(fresh.length === 1 ? 'Added 1 song to “' + pl.name + '”' : 'Added ' + fresh.length + ' songs to “' + pl.name + '”');
+      return;
+    }
     const name = ($('#plName').value || '').trim() || 'My playlist';
-    const ids = $$('#plSongList .pl-song-opt.on').map(b => b.dataset.sid);
+    const ids = plPickOrder.slice();
     const id = 'p' + Date.now().toString(36);
     S.playlists.push({ id: id, name: name, songs: ids });
     savePlaylists();
@@ -726,7 +959,101 @@
     openAddToPlaylist(S.cur);
   });
 
+  $('#plDelete').addEventListener('click', () => {
+    const col = String(S.col);
+    if (!col.startsWith('pl:')) return; /* built-in collections can never be deleted */
+    const pl = S.playlists.find(p => p.id === col.slice(3));
+    if (!pl) return;
+    if (!confirm(`Delete the playlist “${pl.name}”? Your songs stay in the library.`)) return;
+    S.playlists = S.playlists.filter(p => p.id !== pl.id);
+    savePlaylists();
+    renderPlaylistNav();
+    go('all');
+    toast(`Playlist “${pl.name}” deleted`);
+  });
+
   renderPlaylistNav();
+
+  /* Android app: tell the app when music plays so it keeps running with the screen off */
+  if (window.StereoAndroid && window.StereoAndroid.setPlaying) {
+    const notifyApp = playing => {
+      try { const cur = libMap.get(S.cur); window.StereoAndroid.setPlaying(playing, cur ? cur.title : ''); } catch (e) {}
+    };
+    audio.addEventListener('playing', () => notifyApp(true));
+    audio.addEventListener('pause', () => notifyApp(false));
+  }
+
+  /* ------------------------------ install app ----------------------------- */
+  const installBtn = $('#installBtn');
+  const installTop = $('#installTop');
+  const setInstallHidden = h => { installBtn.hidden = h; installTop.hidden = h; };
+  const inWrapper = !!(window.StereoAndroid || window.stereoDesktop); /* already running as an app */
+  const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  let installEvent = null;
+
+  function syncInstallBtn() {
+    const can = window.isSecureContext && !inWrapper && !standalone();
+    setInstallHidden(!can);
+  }
+
+  function installSteps() {
+    const ua = navigator.userAgent;
+    const iOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const android = /android/i.test(ua);
+    const edge = /edg/i.test(ua);
+    const firefox = /firefox|fxios/i.test(ua);
+    const safariMac = !iOS && /Macintosh/.test(ua) && /safari/i.test(ua) && !/chrome|chromium|crios|edg|fxios/i.test(ua);
+    if (iOS) return { lead: 'On iPhone and iPad, installing is done from the browser’s Share menu.', steps: [
+      'Tap the <b>Share</b> button (the square with an arrow) in Safari’s toolbar.',
+      'Scroll down and tap <b>Add to Home Screen</b>.',
+      'Tap <b>Add</b>. Stereo now opens like any other app.'] };
+    if (safariMac) return { lead: 'On Mac, Safari can add Stereo to your Dock.', steps: [
+      'In the menu bar, choose <b>File → Add to Dock…</b>',
+      'Click <b>Add</b>. Stereo now opens in its own window from the Dock.'] };
+    if (firefox) return { lead: 'Firefox can’t install web apps.', steps: [
+      'Open this page in <b>Chrome, Edge or Safari</b>.',
+      'Then press <b>Install app</b> again.'] };
+    if (android) return { lead: 'Installing is done from your browser’s menu.', steps: [
+      'Tap the <b>⋮</b> menu in the top corner.',
+      'Tap <b>Install app</b> (or <b>Add to Home screen</b>).',
+      'Tap <b>Install</b>.'] };
+    return { lead: 'Installing is done from your browser.', steps: [
+      'Click the <b>install icon</b> at the right end of the address bar,' + (edge ? ' or open the <b>⋯</b> menu → <b>Apps → Install this site as an app</b>.' : ' or open the <b>⋮</b> menu → <b>Cast, save and share → Install page as app</b>.'),
+      'Click <b>Install</b>. Stereo now opens in its own window.'] };
+  }
+
+  function showInstallHelp() {
+    const h = installSteps();
+    $('#installLead').textContent = h.lead;
+    $('#installSteps').innerHTML = h.steps.map(t => '<li><span>' + t + '</span></li>').join('');
+    openModal($('#installModal'));
+  }
+
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; syncInstallBtn(); });
+  window.addEventListener('appinstalled', () => { installEvent = null; setInstallHidden(true); toast('Stereo installed 🎉', 3000); });
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(display-mode: standalone)');
+    if (mq.addEventListener) mq.addEventListener('change', syncInstallBtn);
+  }
+  async function onInstallClick() {
+    closeSidebar();
+    if (installEvent) {
+      const ev = installEvent; installEvent = null; /* a saved prompt can only be used once */
+      try {
+        ev.prompt();
+        const choice = await ev.userChoice;
+        if (choice && choice.outcome === 'accepted') setInstallHidden(true);
+      } catch (err) { showInstallHelp(); }
+    } else showInstallHelp();
+  }
+  installBtn.addEventListener('click', onInstallClick);
+  installTop.addEventListener('click', onInstallClick);
+  syncInstallBtn();
+
+  /* offline cache + installability (only on the website; the Android / desktop apps bundle their own files) */
+  if ('serviceWorker' in navigator && window.isSecureContext && !inWrapper) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
 
   /* ---------------------------------- boot -------------------------------- */
   async function boot() {
