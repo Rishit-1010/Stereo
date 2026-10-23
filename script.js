@@ -543,6 +543,7 @@
       case 'mute': S.muted = !S.muted; applyVolume(); break;
       case 'repeat': S.repeat = !S.repeat; store.set('repeat', S.repeat); applyRepeat(); break;
       case 'timer': openSleep(); break;
+      case 'speed': openSpeed(); break;
       case 'expand': showView('np'); break;
     }
   });
@@ -784,6 +785,52 @@
     note.hidden = true; startSleep(total); closeModal($('#sleepModal'));
     $('#cHr').value = ''; $('#cMin').value = '';
   });
+
+  /* ---------------------------- playback speed ---------------------------- */
+  const SPEED_MIN = 0.1, SPEED_MAX = 2;
+  const speedRange = $('#speedRange');
+  const clampSpeed = v => {
+    v = Number(v);
+    if (!isFinite(v)) return 1;
+    return Math.round(Math.min(SPEED_MAX, Math.max(SPEED_MIN, v)) * 100) / 100;
+  };
+  const fmtSpeed = v => Number(v.toFixed(2)) + 'x';
+  let speed = clampSpeed(store.get('speed', 1));
+
+  function renderSpeed() {
+    const label = fmtSpeed(speed);
+    $('#speedVal').textContent = label;
+    $('#speedReset').hidden = speed === 1;
+    speedRange.value = String(speed);
+    speedRange.setAttribute('aria-valuetext', label);
+    setRange(speedRange, (speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN));
+    $$('#speedChips .chip').forEach(c => c.classList.toggle('on', Math.abs(Number(c.dataset.s) - speed) < 0.001));
+    $$('[data-act="speed"]').forEach(b => {
+      b.classList.toggle('active', speed !== 1);
+      b.title = 'Playback speed — ' + label;
+      b.setAttribute('aria-label', 'Playback speed, ' + label);
+    });
+  }
+  function applySpeed(v, save) {
+    speed = clampSpeed(v);
+    /* defaultPlaybackRate matters: loading a new song resets playbackRate to it */
+    audio.defaultPlaybackRate = speed;
+    audio.playbackRate = speed;
+    audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true; /* slower / faster, same pitch */
+    if (save !== false) store.set('speed', speed);
+    renderSpeed();
+    updatePosition();
+  }
+  audio.addEventListener('loadstart', () => { audio.playbackRate = speed; });
+
+  function openSpeed() { renderSpeed(); openModal($('#speedModal')); }
+  $('#speedChips').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (!c) return;
+    applySpeed(c.dataset.s);
+  });
+  speedRange.addEventListener('input', () => applySpeed(speedRange.value));
+  $('#speedReset').addEventListener('click', () => applySpeed(1));
+  applySpeed(speed, false);
 
   /* ------------------------------ add a song ------------------------------ */
   const fileInput = $('#fileInput');

@@ -78,6 +78,7 @@
     <symbol id="i-vol" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
     <symbol id="i-mute" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-speed" viewBox="0 0 24 24"><path d="M4.9 19.1a10 10 0 1 1 14.2 0"/><path d="M12 14l4.5-4.5"/><circle cx="12" cy="14" r="1.2"/></symbol>
     <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></symbol>
     <symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
@@ -215,6 +216,7 @@
               <button type="button" class="ext ext-vol" data-act="mute" aria-label="Mute"><svg class="ico v-on"><use href="#i-vol"/></svg><svg class="ico v-off"><use href="#i-mute"/></svg></button>
               <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
               <span class="grow"></span>
+              <button type="button" class="ext ext-speed" data-act="speed" aria-label="Playback speed" title="Playback speed"><svg class="ico"><use href="#i-speed"/></svg></button>
               <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat this song" aria-pressed="false"><svg class="ico"><use href="#i-repeat"/></svg></button>
               <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
             </div>
@@ -283,6 +285,38 @@
       <button class="start-btn" type="submit">Start</button>
     </form>
     <p class="form-note" id="sleepNote" hidden></p>
+  </div>
+</div>
+
+<!-- ============================ PLAYBACK SPEED ========================== -->
+<div class="modal" id="speedModal" hidden role="dialog" aria-modal="true" aria-labelledby="speedTitle">
+  <div class="sheet speed-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">PLAYBACK SPEED</p>
+    <h2 class="sheet-title" id="speedTitle">How fast should it play?</h2>
+
+    <div class="speed-now">
+      <span>Current speed <b id="speedVal">1x</b></span>
+      <button type="button" id="speedReset" hidden>Reset to 1x</button>
+    </div>
+
+    <div class="chips speed-chips" id="speedChips">
+      <button type="button" class="chip" data-s="0.25"><b>0.25</b><span>x</span></button>
+      <button type="button" class="chip" data-s="0.5"><b>0.5</b><span>x</span></button>
+      <button type="button" class="chip" data-s="0.75"><b>0.75</b><span>x</span></button>
+      <button type="button" class="chip" data-s="1"><b>1</b><span>x · normal</span></button>
+      <button type="button" class="chip" data-s="1.25"><b>1.25</b><span>x</span></button>
+      <button type="button" class="chip" data-s="1.5"><b>1.5</b><span>x</span></button>
+      <button type="button" class="chip" data-s="1.75"><b>1.75</b><span>x</span></button>
+      <button type="button" class="chip" data-s="2"><b>2</b><span>x</span></button>
+    </div>
+
+    <hr class="sheet-rule">
+    <p class="eyebrow">CUSTOM SPEED</p>
+    <div class="speed-custom">
+      <input class="range" id="speedRange" type="range" min="0.1" max="2" step="0.05" value="1" aria-label="Custom playback speed">
+      <div class="speed-scale"><span>0.1x</span><span>2x</span></div>
+    </div>
   </div>
 </div>
 
