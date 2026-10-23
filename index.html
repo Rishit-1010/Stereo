@@ -123,6 +123,7 @@
       <button type="button" class="add-btn playlist-btn" id="playlistBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Create new playlist</span></button>
       <!-- shown only where the player can be installed (hidden once installed, and inside the Android/desktop apps) -->
       <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install app</span></button>
+      <button type="button" class="add-btn share-btn" id="shareBtn"><svg class="ico"><use href="#i-share"/></svg><span>Share Stereo</span></button>
     </nav>
   </aside>
   <div id="backdrop" aria-hidden="true"></div>
@@ -136,7 +137,6 @@
       <svg class="ico"><use href="#i-search"/></svg>
       <input id="search" type="search" placeholder="Search your library..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search your library">
     </label>
-    <button class="circle-btn install-top" id="installTop" type="button" aria-label="Install app" title="Install app" hidden><svg class="ico"><use href="#i-download"/></svg></button>
     <button class="circle-btn theme-btn" id="themeBtn" type="button" aria-label="Switch theme">
       <svg class="ico t-sun"><use href="#i-sun"/></svg>
       <svg class="ico t-moon"><use href="#i-moon"/></svg>
@@ -183,7 +183,12 @@
         </div>
 
         <div class="np-body">
-          <div class="np-art"><div class="np-art-img" id="npArt" role="img" aria-label="Album art"></div></div>
+          <div class="np-art">
+            <div class="np-glow" aria-hidden="true"></div>
+            <div class="np-art-img" id="npArt" role="img" aria-label="Album art"></div>
+            <div class="np-shine" aria-hidden="true"></div>
+            <div class="np-eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
 
           <div class="np-info">
             <p class="listening">LISTENING NOW</p>
@@ -365,7 +370,7 @@
 
 <input type="file" id="fileInput" accept="audio/mpeg,audio/mp3,audio/*,.mp3" multiple hidden>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-<audio id="audio" preload="metadata" playsinline></audio>
+<audio id="audio" preload="metadata" playsinline webkit-playsinline x-webkit-airplay="allow"></audio>
 
 <script src="songs.js"></script>
 <script src="script.js"></script>

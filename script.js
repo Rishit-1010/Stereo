@@ -334,12 +334,20 @@
     S.cur = id;
     S.wantPlay = !!autoplay;
     store.set('last', id);
-    if (changed) { audio.src = s.src; audio.load(); }
+    if (changed) {
+      /* Prefer a fuller buffer so playback survives the screen turning off. */
+      try { audio.preload = 'auto'; } catch (e) {}
+      audio.src = s.src;
+      audio.load();
+    }
     syncNow();
+    updateMediaSession();
     if (autoplay) playAudio();
   }
 
   function playAudio() {
+    S.wantPlay = true;
+    updateMediaSession();
     const p = audio.play();
     if (p && p.catch) p.catch(err => {
       if (err && err.name === 'NotAllowedError') return;
@@ -357,7 +365,10 @@
     if (audio.paused) {
       if (audio.error) { audio.load(); }
       playAudio();
-    } else audio.pause();
+    } else {
+      S.wantPlay = false;
+      audio.pause();
+    }
   }
 
   function step(dir) {
@@ -393,8 +404,42 @@
     if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('row')) { e.preventDefault(); playFromRow(e.target.dataset.id); }
   });
 
+  /* Now Playing cover: spins as a circle while playing; on pause it eases back upright and morphs to the square */
+  const npArt = $('#npArt');
+  const SPIN_SECONDS = 14; /* keep in sync with np-vinyl-spin in style.css */
+  let settleTimer = 0;
+  function coverAngle() {
+    const m = getComputedStyle(npArt).transform;
+    if (!m || m === 'none') return 0;
+    const v = m.slice(m.indexOf('(') + 1, -1).split(',').map(parseFloat);
+    let deg = Math.atan2(v[1], v[0]) * 180 / Math.PI;
+    if (deg < 0) deg += 360;
+    return deg;
+  }
+  function coverSpinStart() {
+    clearTimeout(settleTimer);
+    const deg = coverAngle(); /* read before the animation takes over, so a quick resume continues from here */
+    npArt.classList.remove('is-settling');
+    npArt.style.transform = '';
+    npArt.style.animationDelay = '-' + (deg / 360 * SPIN_SECONDS).toFixed(3) + 's';
+  }
+  function coverSettle() {
+    const deg = coverAngle(); /* read while still spinning */
+    npArt.style.animationDelay = '';
+    app.classList.remove('is-playing'); /* stops the spin so the frozen angle below takes over */
+    if (deg < 0.5 || deg > 359.5) return;
+    npArt.classList.remove('is-settling');
+    npArt.style.transform = 'rotate(' + deg + 'deg)'; /* freeze at the current angle... */
+    void npArt.offsetWidth;
+    npArt.classList.add('is-settling');
+    npArt.style.transform = 'rotate(' + (deg > 180 ? 360 : 0) + 'deg)'; /* ...then turn the short way to upright */
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => { npArt.classList.remove('is-settling'); npArt.style.transform = ''; }, 900);
+  }
+
   /* audio events */
   audio.addEventListener('play', () => {
+    coverSpinStart();
     app.classList.add('is-playing');
     if (S.cur) {
       if (S.recent[0] !== S.cur) {
@@ -407,6 +452,7 @@
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
   });
   audio.addEventListener('pause', () => {
+    coverSettle();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   });
@@ -451,6 +497,7 @@
     const tx = fmt(t);
     $('#plTime').textContent = tx; $('#npTime').textContent = tx;
     $$('#plTime, #npTime').forEach(el => el.title = ok ? `${tx} / ${fmt(d)}` : tx);
+    if (ok) updatePosition();
   }
 
   seeks.forEach(el => {
@@ -585,26 +632,82 @@
   }
 
   /* ---------------------------- media session ----------------------------- */
+  /* Lock-screen / notification controls + keep audio alive when the phone
+     screen is off. Media Session is what Android / iOS use for that UI. */
+  function absUrl(path) {
+    try { return new URL(path, location.href).href; } catch (e) { return path; }
+  }
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
     const s = libMap.get(S.cur); if (!s) return;
     const light = document.documentElement.getAttribute('data-theme') === 'light';
-    const art = REPO_RAW + (light ? 'CoverBig1.png' : 'CoverBig.png');
+    const cover = absUrl(REPO_RAW + (light ? 'CoverBig1.png' : 'CoverBig.png'));
+    const icon = absUrl('icon-512.png');
     try {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.genre, album: 'Rishit’s Stereo', artwork: [{ src: art, sizes: '350x350', type: 'image/png' }] });
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: s.title,
+        artist: s.genre || 'Rishit’s Stereo',
+        album: 'Rishit’s Stereo',
+        artwork: [
+          { src: icon, sizes: '96x96', type: 'image/png' },
+          { src: icon, sizes: '128x128', type: 'image/png' },
+          { src: icon, sizes: '192x192', type: 'image/png' },
+          { src: icon, sizes: '256x256', type: 'image/png' },
+          { src: icon, sizes: '384x384', type: 'image/png' },
+          { src: icon, sizes: '512x512', type: 'image/png' },
+          { src: cover, sizes: '350x350', type: 'image/png' }
+        ]
+      });
+      navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
     } catch (e) {}
+    updatePosition();
   }
   function updatePosition() {
     if (!('mediaSession' in navigator) || !navigator.mediaSession.setPositionState) return;
-    try { if (isFinite(audio.duration)) navigator.mediaSession.setPositionState({ duration: audio.duration, position: audio.currentTime, playbackRate: audio.playbackRate }); } catch (e) {}
+    try {
+      if (isFinite(audio.duration) && audio.duration > 0) {
+        const pos = Math.min(Math.max(0, audio.currentTime || 0), audio.duration);
+        navigator.mediaSession.setPositionState({
+          duration: audio.duration,
+          position: pos,
+          playbackRate: audio.playbackRate || 1
+        });
+      }
+    } catch (e) {}
   }
   if ('mediaSession' in navigator) {
     const h = (a, f) => { try { navigator.mediaSession.setActionHandler(a, f); } catch (e) {} };
-    h('play', togglePlay); h('pause', () => audio.pause());
+    h('play', () => { S.wantPlay = true; playAudio(); });
+    h('pause', () => { S.wantPlay = false; audio.pause(); });
     h('previoustrack', prev); h('nexttrack', next);
-    h('seekbackward', () => skip(-10)); h('seekforward', () => skip(10));
-    h('seekto', d => { if (d && isFinite(d.seekTime)) audio.currentTime = d.seekTime; });
+    h('seekbackward', d => skip(-((d && d.seekOffset) || 10)));
+    h('seekforward', d => skip((d && d.seekOffset) || 10));
+    h('seekto', d => {
+      if (d && isFinite(d.seekTime)) {
+        audio.currentTime = d.seekTime;
+        updatePosition();
+      }
+    });
   }
+
+  /* Keep playing when the screen locks / the tab is backgrounded. Phones may
+     briefly pause the element; we resume if the user still wanted playback. */
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      updateMediaSession();
+      if (S.wantPlay && S.cur && audio.paused) playAudio();
+    } else {
+      updateProgress();
+      updateMediaSession();
+      if (S.wantPlay && S.cur && audio.paused) playAudio();
+    }
+  });
+  window.addEventListener('pagehide', () => { updateMediaSession(); });
+  window.addEventListener('pageshow', () => {
+    updateProgress();
+    updateMediaSession();
+    if (S.wantPlay && S.cur && audio.paused) playAudio();
+  });
 
   /* ------------------------------- modals --------------------------------- */
   let lastFocus = null;
@@ -656,6 +759,7 @@
   }
   function finishSleep() {
     clearInterval(sleepInt); clearInterval(fadeInt); fadeInt = 0; sleepEnd = 0;
+    S.wantPlay = false;
     audio.pause(); audio.volume = S.vol;
     renderSleep(); toast('Sleep timer finished — music stopped', 4500);
   }
@@ -766,6 +870,7 @@
   $('#npDelete').addEventListener('click', async () => {
     const s = libMap.get(S.cur); if (!s || !s.user) return;
     if (!confirm(`Remove “${s.title}” from your library on this device?`)) return;
+    S.wantPlay = false;
     audio.pause();
     try { await DB.del(s.id); } catch (e) {}
     URL.revokeObjectURL(s.src);
@@ -985,8 +1090,7 @@
 
   /* ------------------------------ install app ----------------------------- */
   const installBtn = $('#installBtn');
-  const installTop = $('#installTop');
-  const setInstallHidden = h => { installBtn.hidden = h; installTop.hidden = h; };
+  const setInstallHidden = h => { installBtn.hidden = h; };
   const inWrapper = !!(window.StereoAndroid || window.stereoDesktop); /* already running as an app */
   const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
   let installEvent = null;
@@ -1047,8 +1151,30 @@
     } else showInstallHelp();
   }
   installBtn.addEventListener('click', onInstallClick);
-  installTop.addEventListener('click', onInstallClick);
   syncInstallBtn();
+
+  /* ----------------------------- share Stereo ----------------------------- */
+  const SHARE_URL = 'https://github.com/Rishit-1010/Stereo';
+  const SHARE_TEXT = "Check out Rishit's Stereo — a personal music player.";
+  async function shareStereo() {
+    closeSidebar();
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Rishit's Stereo", text: SHARE_TEXT, url: SHARE_URL });
+        return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      toast('Link copied — share it with anyone');
+    } catch (e) {
+      window.prompt('Copy this link to share Stereo:', SHARE_URL);
+    }
+  }
+  const shareBtn = $('#shareBtn');
+  if (shareBtn) shareBtn.addEventListener('click', shareStereo);
 
   /* offline cache + installability (only on the website; the Android / desktop apps bundle their own files) */
   if ('serviceWorker' in navigator && window.isSecureContext && !inWrapper) {

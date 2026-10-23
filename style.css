@@ -230,6 +230,7 @@ input { font: inherit; color: inherit; }
 /* ---- playlists ---- */
 .playlist-btn { margin-top: 10px; }
 .install-btn { margin-top: 10px; background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.share-btn { margin-top: 10px; background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .install-lead { margin: 10px 0 0; color: var(--sheet-muted); }
 .install-steps { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 10px; }
 .install-steps li {
@@ -295,8 +296,6 @@ input { font: inherit; color: inherit; }
 .search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .search:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
 .theme-btn { margin-left: auto; margin-right: 20px; }
-.install-top { margin-left: auto; margin-right: 12px; }
-.install-top:not([hidden]) + .theme-btn { margin-left: 0; }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-fg);
   display: grid; place-items: center; font: 600 16px/1 var(--f-park); flex: none; padding-top: 1px;
@@ -319,11 +318,11 @@ input { font: inherit; color: inherit; }
 .view { position: absolute; inset: 0; display: flex; flex-direction: column; min-height: 0; }
 #npView { background: var(--bg-np); }
 
-.col { width: min(916px, calc(100% - 80px)); margin-left: max(40px, calc((100% - 916px) / 2 - 14.5px)); margin-right: 0; }
-.coll-head { flex: none; padding: 39px 0 0 2px; }
+.col { width: min(916px, calc(100% - clamp(24px, 6vw, 80px))); margin-left: max(clamp(12px, 3vw, 40px), calc((100% - 916px) / 2 - 14.5px)); margin-right: 0; }
+.coll-head { flex: none; padding: clamp(18px, 4vw, 39px) 0 0 2px; }
 .coll-label { font: 700 14px/1.3 var(--f-mono); letter-spacing: 2.8px; color: var(--coll-label); height: 18px; }
-.coll-row { display: flex; align-items: center; gap: 16px; }
-.coll-title { flex: 1; min-width: 0; font: 400 48px/1.3 var(--f-anton); color: var(--coll-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.coll-row { display: flex; align-items: center; gap: clamp(10px, 2vw, 16px); }
+.coll-title { flex: 1; min-width: 0; font: 400 clamp(28px, 5.2vw, 48px)/1.2 var(--f-anton); color: var(--coll-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .del-pl, .add-pl {
   flex: none; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 20px;
   border: 1px solid var(--circle-line); background: var(--circle-fill); color: var(--circle-fg);
@@ -396,10 +395,151 @@ input { font: inherit; color: inherit; }
 :root[data-theme="light"] .np-label { color: var(--text); }
 .np-actions { display: flex; gap: 10px; }
 .np-body { display: flex; align-items: flex-start; gap: clamp(24px, 14.5%, 127px); margin: 69px 103px 0 211px; }
-.np-art { flex: 0 1 350px; min-width: 190px; }
-.np-art-img { width: 100%; aspect-ratio: 1; background: var(--cover-big) center / contain no-repeat; }
+.np-art {
+  flex: 0 1 350px; min-width: 190px;
+  position: relative;
+  isolation: isolate;
+  padding-bottom: 18px; /* room for EQ bars */
+}
+/* idle / paused: the original square cover. playing: it morphs into a circle (and back). */
+.np-art-img {
+  width: 100%; aspect-ratio: 1;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--cover-big) center / cover no-repeat;
+  will-change: transform, filter;
+  transition: border-radius .7s var(--ease), box-shadow .7s var(--ease), filter .35s var(--ease);
+  position: relative; z-index: 1;
+}
+/* while easing back upright after a pause (set from script.js) */
+.np-art-img.is-settling {
+  transition: transform .8s var(--ease), border-radius .7s var(--ease), box-shadow .7s var(--ease), filter .35s var(--ease);
+}
+/* glow + shine share the cover's exact box and morph with it, so nothing spills outside the shape */
+.np-glow, .np-shine {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; aspect-ratio: 1;
+  border-radius: 0;
+  clip-path: inset(0 round 0);
+  pointer-events: none;
+  transition: border-radius .7s var(--ease), clip-path .7s var(--ease), opacity .7s var(--ease);
+}
+.is-playing .np-glow, .is-playing .np-shine {
+  border-radius: 50%;
+  clip-path: inset(0 round 50%);
+}
+/* soft glow behind the spinning cover (does not rotate) */
+.np-glow {
+  z-index: 0;
+  clip-path: none; /* a glow has to be allowed to extend past the cover */
+  opacity: 0;
+  box-shadow:
+    0 0 38px 4px color-mix(in srgb, var(--accent) 42%, transparent),
+    0 0 90px 12px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.is-playing .np-glow { opacity: 1; clip-path: none; }
+/* non-rotating shine overlay — stays fixed while the disc spins, clipped to the cover shape */
+.np-shine {
+  overflow: hidden;
+  z-index: 3;
+}
+.np-shine::before {
+  content: '';
+  position: absolute;
+  top: -30%; left: -40%;
+  width: 55%; height: 160%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 40%,
+    color-mix(in srgb, #fff 55%, var(--accent)) 49%,
+    color-mix(in srgb, var(--accent) 70%, #fff) 51%,
+    transparent 60%,
+    transparent 100%
+  );
+  filter: blur(1px);
+  opacity: 0;
+  transform: translateX(-30%) rotate(18deg);
+}
+/* sonic rings (circular) */
+.np-art::before,
+.np-art::after {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+}
+/* equalizer bars under the circular art */
+.np-eq {
+  display: none;
+  position: absolute;
+  left: 50%; bottom: -6px;
+  transform: translateX(-50%);
+  height: 22px; width: 42%;
+  align-items: flex-end; justify-content: center; gap: 5px;
+  z-index: 2; pointer-events: none;
+}
+.np-eq span {
+  display: block; width: 5px; border-radius: 3px;
+  background: var(--accent);
+  transform-origin: bottom center;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.np-eq span:nth-child(1) { height: 8px; }
+.np-eq span:nth-child(2) { height: 14px; }
+.np-eq span:nth-child(3) { height: 11px; }
+.np-eq span:nth-child(4) { height: 18px; }
+.np-eq span:nth-child(5) { height: 10px; }
+
+.is-playing .np-art::before {
+  animation: np-ring 2.5s ease-out infinite;
+}
+.is-playing .np-art::after {
+  animation: np-ring 2.5s ease-out infinite 1.25s;
+}
+.is-playing .np-art-img {
+  border-radius: 50%;
+  animation: np-vinyl-spin 14s linear infinite;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.is-playing .np-shine::before {
+  animation: np-shimmer 3.4s ease-in-out infinite;
+}
+.is-playing .np-eq {
+  display: flex;
+}
+.is-playing .np-eq span {
+  animation: np-eq 0.85s ease-in-out infinite alternate;
+}
+.is-playing .np-eq span:nth-child(1) { animation-duration: .7s; }
+.is-playing .np-eq span:nth-child(2) { animation-duration: .95s; animation-delay: .08s; }
+.is-playing .np-eq span:nth-child(3) { animation-duration: .8s; animation-delay: .16s; }
+.is-playing .np-eq span:nth-child(4) { animation-duration: 1.05s; animation-delay: .04s; }
+.is-playing .np-eq span:nth-child(5) { animation-duration: .75s; animation-delay: .12s; }
 .np-info { flex: 0 1 400px; min-width: 280px; padding-top: 10px; }
-.listening { font: 700 12px/16px var(--f-mono); letter-spacing: 1.2px; color: var(--label-2); }
+.listening {
+  font: 700 12px/16px var(--f-mono); letter-spacing: 1.2px; color: var(--label-2);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.listening::before {
+  content: '';
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.is-playing .listening::before {
+  animation: listen-dot 1.6s ease-out infinite;
+}
+.is-playing .listening {
+  animation: listen-fade 2.4s ease-in-out infinite;
+}
 .np-title { margin-top: 14px; font: 400 40px/1.22 var(--f-anta); color: var(--text-strong); overflow-wrap: anywhere; }
 .np-genre { font: 400 24px/28px var(--f-karla); color: var(--accent); }
 .np-seek { margin-top: 44px; height: 15px; }
@@ -497,20 +637,112 @@ input { font: inherit; color: inherit; }
 
 /* ------------------------------ hover polish ---------------------------- */
 @media (hover: hover) {
-  .row:hover { transform: translateX(4px); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .row:hover {
+    transform: translateX(5px);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
   .row.playing:hover { border-color: var(--row-playing-line); }
-  .row:hover .rplay { transform: scale(1.1); }
-  .like:hover { transform: scale(1.18); }
-  .nav-item:hover { transform: translateX(3px); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-  .add-btn:hover, .playlist-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 35%, transparent); }
-  .circle-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-  .ctl:hover { transform: scale(1.12); }
-  .ctl-play:hover { transform: scale(1.06); box-shadow: 0 0 26px color-mix(in srgb, var(--play-big-bg) 45%, transparent); }
-  .ext:hover { transform: scale(1.12); color: var(--accent); }
-  .range:hover::-webkit-slider-thumb { transform: scale(1.2); }
-  .del-pl:hover, .add-pl:hover { transform: translateY(-1px); border-color: var(--accent); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .row:hover .rplay { transform: scale(1.14); }
+  .row:hover .thumb { transform: scale(1.06); }
+  .row:hover .title { color: var(--accent); }
+  .like:hover { transform: scale(1.22); color: var(--heart-on); }
+  .nav-item:hover {
+    transform: translateX(4px);
+    border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .nav-item:hover .ico { color: var(--accent); }
+  .add-btn:hover, .playlist-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .circle-btn:hover {
+    transform: scale(1.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--accent);
+  }
+  .ctl:not(.ctl-play):hover { transform: scale(1.14); color: var(--accent); }
+  .ctl-play:hover {
+    transform: scale(1.08);
+    /* keep icon color — don't turn the whole play button accent-green */
+    color: var(--play-big-fg);
+    box-shadow: 0 0 28px color-mix(in srgb, var(--play-big-bg) 40%, transparent);
+  }
+  .ext:hover { transform: scale(1.14); color: var(--accent); }
+  .range:hover::-webkit-slider-thumb { transform: scale(1.25); }
+  .del-pl:hover, .add-pl:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  /* keep vinyl spinning on hover — only brighten slightly */
+  .np-art-img:hover { filter: brightness(1.06); }
+  .is-playing .np-art-img:hover { filter: brightness(1.08); }
+  .theme-btn:hover { transform: scale(1.1) rotate(12deg); }
+  .search:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
 }
 .row:active, .nav-item:active, .circle-btn:active, .ctl:active, .add-btn:active { transform: scale(.97); }
+
+/* continuous motion while audio is playing */
+.row .thumb { transition: transform .25s var(--ease); }
+.is-playing .row.playing .thumb {
+  animation: thumb-bob 2.2s ease-in-out infinite;
+}
+.is-playing .row.playing .rplay {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--pbp-bg, var(--accent)) 40%, transparent);
+  animation: play-ring 2s ease-out infinite;
+}
+.is-playing .pl-left .thumb {
+  animation: thumb-bob 2.2s ease-in-out infinite;
+}
+.is-playing .ctl-play {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--play-big-bg) 40%, transparent);
+  animation: play-ring 2.4s ease-out infinite;
+}
+
+@keyframes np-vinyl-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes np-ring {
+  0%   { transform: scale(0.92); opacity: .55; }
+  100% { transform: scale(1.32); opacity: 0; }
+}
+@keyframes np-shimmer {
+  0%   { transform: translateX(-40%) rotate(18deg); opacity: 0; }
+  8%   { opacity: 0; }
+  18%  { opacity: .95; }
+  42%  { opacity: .7; }
+  55%  { transform: translateX(160%) rotate(18deg); opacity: 0; }
+  100% { transform: translateX(160%) rotate(18deg); opacity: 0; }
+}
+@keyframes np-eq {
+  from { transform: scaleY(0.35); }
+  to   { transform: scaleY(1); }
+}
+@keyframes listen-dot {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); opacity: 1; }
+  70% { box-shadow: 0 0 0 10px transparent; opacity: .85; }
+  100% { box-shadow: 0 0 0 0 transparent; opacity: 1; }
+}
+@keyframes listen-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+@keyframes thumb-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.04); }
+}
+@keyframes play-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--play-big-bg, var(--accent)) 45%, transparent); }
+  70% { box-shadow: 0 0 0 14px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
 
 /* ------------------------------- modals ---------------------------------- */
 .modal {
@@ -607,19 +839,32 @@ input { font: inherit; color: inherit; }
 .toast { animation-name: toast-in; }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-/* player bar tightening for smaller desktop windows */
+/* mid-size desktops / laptops — shrink sidebar + player so nothing overflows */
 @media (min-width: 901px) and (max-width: 1320px) {
+  :root { --sb-w: 220px; }
+  .logo { width: 150px; height: 62px; }
+  .nav { padding: 0 16px 0 18px; margin-top: 28px; }
   .pl-right .vol { display: none; }
-  .pl-right .ext-vol { margin-right: 24px; }
-  .pl-right .ext-repeat { margin-right: 28px; }
-  .pl-right .ext-timer { margin-right: 28px; }
-  .pl-center { --seek-w: clamp(170px, calc(100vw - 800px), 400px); }
+  .pl-right .ext-vol { margin-right: 20px; }
+  .pl-right .ext-repeat { margin-right: 22px; }
+  .pl-right .ext-timer { margin-right: 22px; }
+  .pl-left { padding-left: 16px; }
+  .pl-center { --seek-w: clamp(170px, calc(100vw - 760px), 360px); }
+  .row .genre { width: 110px; }
+  .row .num { width: 36px; }
+  .row .title { font-size: 16px; }
 }
 @media (min-width: 901px) and (max-width: 1100px) {
-  .pl-right .ext-vol, .pl-right .ext-repeat { display: none; }
+  :root { --sb-w: 200px; }
+  .pl-right .ext-vol, .pl-right .ext-repeat, .pl-right .ext-timer { display: none; }
   .pl-meta .pl-genre { display: none; }
-  .pl-center { --seek-w: clamp(170px, calc(100vw - 690px), 400px); }
-  #topbar { padding-left: 40px; padding-right: 30px; }
+  .pl-center { --seek-w: clamp(160px, calc(100vw - 640px), 320px); }
+  #topbar { padding-left: 28px; padding-right: 22px; }
+  .row { height: 60px; padding: 0 14px 0 12px; }
+  .row .thumb { width: 40px; height: 40px; margin-right: 12px; }
+  .row .genre { width: 88px; font-size: 13px; }
+  .row .title { font-size: 15px; }
+  .coll-title { font-size: clamp(28px, 4vw, 40px); }
 }
 
 /* ==========================================================================
@@ -666,7 +911,6 @@ input { font: inherit; color: inherit; }
   }
   .search input::placeholder { font-size: inherit; }
   .theme-btn { margin: 0; }
-  .install-top { display: none; } /* phones use the button in the side menu */
   .avatar { display: none; }
 
   #main { grid-column: 1; }
@@ -757,13 +1001,13 @@ input { font: inherit; color: inherit; }
   .np-art { width: min(300px, 38dvh); }
   .row { height: 56px; }
   .row .thumb { width: 36px; height: 36px; }
-  .coll-title { font-size: 54px; }
+  .coll-title { font-size: clamp(36px, 7vw, 54px); }
 }
 @media (hover: none) and (pointer: coarse) and (min-width: 600px) {
   .np-art { width: min(300px, 38dvh); }
   .row { height: 56px; }
   .row .thumb { width: 36px; height: 36px; }
-  .coll-title { font-size: 54px; }
+  .coll-title { font-size: clamp(36px, 7vw, 54px); }
 }
 @media (max-height: 520px) and (max-width: 900px) {
   .np-art { width: 120px; }
@@ -777,5 +1021,24 @@ input { font: inherit; color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .is-playing .np-art-img,
+  .is-playing .np-shine::before,
+  .is-playing .np-art::before,
+  .is-playing .np-art::after,
+  .is-playing .np-eq span,
+  .is-playing .row.playing .thumb,
+  .is-playing .pl-left .thumb,
+  .is-playing .ctl-play,
+  .is-playing .row.playing .rplay,
+  .is-playing .listening,
+  .is-playing .listening::before {
+    animation: none !important;
+    filter: none;
+  }
+  .is-playing .np-eq { display: none; }
 }
