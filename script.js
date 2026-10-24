@@ -35,6 +35,7 @@
   const defaults = (window.SONGS || []).map((s, i) => ({
     id: 'd' + String(i + 1).padStart(2, '0'),
     title: s.t, cat: s.c, genre: s.g,
+    duration: s.d || 0,
     src: toUrl(s.f),
     alt: s.r ? toUrl(s.r) : null, /* fallback link, tried once if the main file fails to load */
     user: false
@@ -50,10 +51,14 @@
   const S = {
     col: 'all', query: '', view: 'list',
     queue: [], cur: null,
+    originalQueue: [],
     liked: new Set(store.get('liked', [])),
     playlists: store.get('playlists', []),
     recent: store.get('recent', []),
-    repeat: !!store.get('repeat', false),
+    repeatMode: store.get('repeatMode', store.get('repeat', false) ? 'one' : 'off'),
+    shuffle: !!store.get('shuffle', false),
+    offline: new Set(store.get('offline', [])),
+    crossfade: store.get('crossfade', true),
     vol: Math.min(1, Math.max(0, Number(store.get('vol', 0.9)))),
     muted: false
   };
@@ -210,12 +215,16 @@
     const on = S.liked.has(s.id);
     const playing = s.id === S.cur;
     const canDrag = isPlaylistReorderable();
+    const durStr = s.duration ? fmt(s.duration) : '';
+    const isOffline = S.offline.has(s.id);
     return `<li class="row${playing ? ' playing' : ''}${canDrag ? ' can-drag' : ''}" data-id="${s.id}" tabindex="0" role="button" aria-label="Play ${esc(s.title)}">` +
       (canDrag ? `<span class="grip" aria-hidden="true" title="Drag to reorder"><svg class="ico"><use href="#i-grip"/></svg></span>` : '') +
       `<span class="num">${pad2(i + 1)}</span>` +
       `<span class="thumb" aria-hidden="true"></span>` +
       `<span class="title">${esc(s.title)}</span>` +
       `<span class="genre">${esc(s.genre)}</span>` +
+      (durStr ? `<span class="dur">${durStr}</span>` : '') +
+      (isOffline ? `<span class="offline-tag" title="Saved for offline"><svg class="ico"><use href="#i-cloud-check"/></svg></span>` : '') +
       `<button class="like${on ? ' on' : ''}" type="button" data-like="${s.id}" aria-label="${on ? 'Unlike' : 'Like'}" aria-pressed="${on}"><svg class="ico"><use href="#i-heart"/></svg></button>` +
       `<button class="rplay" type="button" data-play="${s.id}" aria-label="Play / pause"><svg class="ico fill i-pl"><use href="#i-play"/></svg><svg class="ico fill i-pa"><use href="#i-pause"/></svg></button>` +
       `</li>`;
@@ -408,9 +417,47 @@
 
   /* ------------------------------ playback -------------------------------- */
   audio.volume = S.vol;
-  audio.loop = S.repeat;
+  audio.loop = (S.repeatMode === 'one');
 
-  function setQueueFromView() { S.queue = visibleSongs().map(s => s.id); }
+  function setQueueFromView() {
+    const list = visibleSongs().map(s => s.id);
+    S.originalQueue = list.slice();
+    if (S.shuffle) {
+      const rest = list.filter(id => id !== S.cur);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      S.queue = S.cur ? [S.cur, ...rest] : rest;
+    } else {
+      S.queue = list;
+    }
+  }
+
+  function fadeTransition(fn) {
+    if (!S.crossfade || audio.paused) { fn(); return; }
+    const startVol = audio.volume;
+    const steps = 6;
+    const interval = 25;
+    let s = 0;
+    const down = setInterval(() => {
+      s++;
+      audio.volume = Math.max(0, startVol * (1 - s / steps));
+      if (s >= steps) {
+        clearInterval(down);
+        fn();
+        let u = 0;
+        const up = setInterval(() => {
+          u++;
+          audio.volume = Math.min(S.vol, S.vol * (u / steps));
+          if (u >= steps) {
+            clearInterval(up);
+            audio.volume = S.vol;
+          }
+        }, interval);
+      }
+    }, interval);
+  }
 
   function loadSong(id, autoplay) {
     const s = libMap.get(id);
@@ -432,6 +479,7 @@
 
   function playAudio() {
     S.wantPlay = true;
+    initVisualizer();
     updateMediaSession();
     const p = audio.play();
     if (p && p.catch) p.catch(err => {
@@ -456,15 +504,23 @@
     }
   }
 
-  function step(dir) {
+  function step(dir, manual = true) {
     let q = S.queue.length ? S.queue : lib.map(s => s.id);
     let i = q.indexOf(S.cur);
     if (i < 0) { q = lib.map(s => s.id); i = q.indexOf(S.cur); }
     if (!q.length) return;
-    loadSong(q[(i + dir + q.length) % q.length], true);
+    if (!manual && dir > 0 && S.repeatMode === 'off' && i >= q.length - 1) {
+      S.wantPlay = false;
+      audio.pause();
+      audio.currentTime = 0;
+      updateProgress();
+      return;
+    }
+    const nextId = q[(i + dir + q.length) % q.length];
+    fadeTransition(() => loadSong(nextId, true));
   }
-  function prev() { if (audio.currentTime > 3) audio.currentTime = 0; else step(-1); }
-  function next() { step(1); }
+  function prev() { if (audio.currentTime > 3) audio.currentTime = 0; else step(-1, true); }
+  function next(manual = true) { step(1, manual); }
 
   /* phones / tablets: swipe left on Now Playing = next song, swipe right = previous song */
   function swipeSong(dir) {
@@ -552,9 +608,51 @@
     settleTimer = setTimeout(() => { npArt.classList.remove('is-settling'); npArt.style.transform = ''; }, 900);
   }
 
+  /* Web Audio API visualizer */
+  let audioCtx = null, analyser = null, audioSrcNode = null, freqData = null;
+  function initVisualizer() {
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+      return;
+    }
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      audioCtx = new AudioCtx();
+      audioSrcNode = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.8;
+      audioSrcNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+    } catch (e) {
+      // AudioContext fallback for environments where createMediaElementSource is restricted
+    }
+  }
+
+  function updateVisualizer() {
+    if (!analyser || audio.paused || !freqData) return;
+    analyser.getByteFrequencyData(freqData);
+    const spans = $$('.np-eq span');
+    if (!spans.length) return;
+    const indices = [1, 3, 5, 8, 12];
+    spans.forEach((sp, i) => {
+      const val = freqData[indices[i]] || 0;
+      const h = Math.max(4, Math.round((val / 255) * 26));
+      sp.style.height = h + 'px';
+      sp.style.animation = 'none';
+    });
+  }
+
+  function resetVisualizer() {
+    $$('.np-eq span').forEach(sp => { sp.style.height = ''; sp.style.animation = ''; });
+  }
+
   /* audio events */
   audio.addEventListener('play', () => {
     coverSpinStart();
+    initVisualizer();
     app.classList.add('is-playing');
     if (S.cur) {
       if (S.recent[0] !== S.cur) {
@@ -568,10 +666,18 @@
   });
   audio.addEventListener('pause', () => {
     coverSettle();
+    resetVisualizer();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   });
-  audio.addEventListener('ended', () => { if (!S.repeat) next(); });
+  audio.addEventListener('ended', () => {
+    if (S.repeatMode === 'one') {
+      audio.currentTime = 0;
+      playAudio();
+    } else {
+      next(false);
+    }
+  });
   audio.addEventListener('timeupdate', updateProgress);
   audio.addEventListener('durationchange', () => { updateProgress(); updatePosition(); });
   audio.addEventListener('loadedmetadata', updateProgress);
@@ -592,7 +698,11 @@
   let raf = 0;
   const startRaf = () => { if (!raf) raf = requestAnimationFrame(tick); };
   const stopRaf = () => { cancelAnimationFrame(raf); raf = 0; };
-  function tick() { updateProgress(); raf = audio.paused ? 0 : requestAnimationFrame(tick); }
+  function tick() {
+    updateProgress();
+    updateVisualizer();
+    raf = audio.paused ? 0 : requestAnimationFrame(tick);
+  }
 
   const seeks = $$('[data-seek]');
   const vols = $$('[data-vol]');
@@ -643,12 +753,56 @@
   }));
   applyVolume();
 
-  /* repeat */
-  function applyRepeat() {
-    audio.loop = S.repeat;
-    $$('[data-act="repeat"]').forEach(b => { b.setAttribute('aria-pressed', String(S.repeat)); b.title = S.repeat ? 'Repeat: this song' : 'Repeat: off'; });
+  /* repeat modes (off -> all -> one) */
+  function cycleRepeat() {
+    const modes = ['off', 'all', 'one'];
+    const nextIdx = (modes.indexOf(S.repeatMode) + 1) % modes.length;
+    applyRepeatMode(modes[nextIdx]);
+    const labels = { off: 'Repeat off', all: 'Repeat all songs', one: 'Repeat current song' };
+    toast(labels[S.repeatMode], 1800);
   }
-  applyRepeat();
+
+  function applyRepeatMode(mode) {
+    S.repeatMode = mode;
+    store.set('repeatMode', mode);
+    audio.loop = (mode === 'one');
+    $$('[data-act="repeat"]').forEach(b => {
+      b.dataset.repeatMode = mode;
+      b.setAttribute('aria-label', 'Repeat mode: ' + mode);
+      b.title = 'Repeat: ' + (mode === 'one' ? 'current song' : mode === 'all' ? 'all songs' : 'off');
+    });
+  }
+  applyRepeatMode(S.repeatMode);
+
+  /* shuffle */
+  function toggleShuffle() {
+    S.shuffle = !S.shuffle;
+    store.set('shuffle', S.shuffle);
+    if (S.shuffle) {
+      if (!S.originalQueue.length) S.originalQueue = S.queue.slice();
+      const rest = S.queue.filter(id => id !== S.cur);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      S.queue = S.cur ? [S.cur, ...rest] : rest;
+    } else {
+      if (S.originalQueue.length) S.queue = S.originalQueue.slice();
+      else setQueueFromView();
+    }
+    syncShuffle();
+    if (!$('#queueModal').hidden) renderQueue();
+    toast(S.shuffle ? 'Shuffle on' : 'Shuffle off', 1600);
+  }
+
+  function syncShuffle() {
+    $$('[data-act="shuffle"]').forEach(b => {
+      b.setAttribute('aria-pressed', String(S.shuffle));
+      b.classList.toggle('active', S.shuffle);
+      b.title = S.shuffle ? 'Shuffle: on' : 'Shuffle: off';
+    });
+  }
+  syncShuffle();
 
   /* generic transport buttons */
   document.addEventListener('click', e => {
@@ -657,11 +811,13 @@
     switch (b.dataset.act) {
       case 'toggle': togglePlay(); break;
       case 'prev': prev(); break;
-      case 'next': next(); break;
+      case 'next': next(true); break;
       case 'rew': skip(-10); break;
       case 'ff': skip(10); break;
       case 'mute': S.muted = !S.muted; applyVolume(); break;
-      case 'repeat': S.repeat = !S.repeat; store.set('repeat', S.repeat); applyRepeat(); break;
+      case 'repeat': cycleRepeat(); break;
+      case 'shuffle': toggleShuffle(); break;
+      case 'queue': openQueue(); break;
       case 'timer': openSleep(); break;
       case 'speed': openSpeed(); break;
       case 'expand': showView('np'); break;
@@ -738,6 +894,49 @@
     }
   });
 
+  /* --------------------------- offline caching ---------------------------- */
+  async function toggleOffline(id) {
+    const s = libMap.get(id);
+    if (!s) return;
+    if (S.offline.has(id)) {
+      S.offline.delete(id);
+      store.set('offline', Array.from(S.offline));
+      try {
+        const c = await caches.open('stereo-audio-v1');
+        await c.delete(s.src, { ignoreSearch: true });
+      } catch (e) {}
+      syncOffline();
+      renderList(false);
+      toast(`Removed “${s.title}” from offline storage`, 2000);
+    } else {
+      toast(`Saving “${s.title}” for offline…`, 2200);
+      try {
+        const res = await fetch(s.src);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const c = await caches.open('stereo-audio-v1');
+        await c.put(s.src, res);
+        S.offline.add(id);
+        store.set('offline', Array.from(S.offline));
+        syncOffline();
+        renderList(false);
+        toast(`“${s.title}” is now saved offline! 🎉`, 2500);
+      } catch (e) {
+        toast(`Couldn't save “${s.title}” offline`, 3000);
+      }
+    }
+  }
+
+  function syncOffline() {
+    const b = $('#npOffline');
+    if (!b) return;
+    const isSaved = S.cur && S.offline.has(S.cur);
+    b.classList.toggle('is-saved', isSaved);
+    b.setAttribute('aria-pressed', String(isSaved));
+    b.title = isSaved ? 'Saved offline (tap to remove)' : 'Save for offline';
+  }
+  const npOffline = $('#npOffline');
+  if (npOffline) npOffline.addEventListener('click', () => { if (S.cur) toggleOffline(S.cur); });
+
   /* --------------------------- now-playing sync --------------------------- */
   function syncNow() {
     const s = libMap.get(S.cur); if (!s) return;
@@ -746,6 +945,8 @@
     document.title = `${s.title} · Rishit’s Stereo`;
     $('#npDelete').hidden = !s.user;
     syncLike();
+    syncOffline();
+    if ($('#queueModal') && !$('#queueModal').hidden) renderQueue();
     $$('.row.playing', listEl).forEach(r => r.classList.remove('playing'));
     const row = listEl.querySelector(`.row[data-id="${s.id}"]`);
     if (row) row.classList.add('playing');
@@ -1006,7 +1207,16 @@
     del(id) { return this.tx('readwrite', st => st.delete(id)); }
   };
 
-  const toSong = rec => ({ id: rec.id, title: rec.title, cat: rec.cat, genre: CAT_GENRE[rec.cat] || 'Other', src: URL.createObjectURL(rec.blob), user: true });
+  const toSong = rec => ({ id: rec.id, title: rec.title, cat: rec.cat, genre: CAT_GENRE[rec.cat] || 'Other', duration: rec.duration || 0, src: URL.createObjectURL(rec.blob), user: true });
+
+  const getAudioDuration = file => new Promise(res => {
+    try {
+      const a = new Audio(URL.createObjectURL(file));
+      a.onloadedmetadata = () => { res(Math.round(a.duration) || 0); URL.revokeObjectURL(a.src); };
+      a.onerror = () => { res(0); URL.revokeObjectURL(a.src); };
+      setTimeout(() => res(0), 2000);
+    } catch (e) { res(0); }
+  });
 
   $('#addConfirm').addEventListener('click', async () => {
     if (!pending.length) return;
@@ -1015,7 +1225,8 @@
     const added = []; let savedOk = true;
     for (const f of files) {
       const title = (files.length === 1 ? $('#songName').value.trim() : '') || cleanName(f.name) || 'Untitled';
-      const rec = { id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, cat: pickedCat, blob: f, mime: f.type || 'audio/mpeg', added: Date.now() };
+      const dur = await getAudioDuration(f);
+      const rec = { id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, cat: pickedCat, duration: dur, blob: f, mime: f.type || 'audio/mpeg', added: Date.now() };
       try { await DB.put(rec); } catch (e) { savedOk = false; }
       const song = toSong(rec); userSongs.push(song); added.push(song);
     }
@@ -1053,14 +1264,78 @@
   /* ---------------------------- keyboard shortcuts ------------------------- */
   document.addEventListener('keydown', e => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
-    if ($$('.modal').some(m => !m.hidden)) return;
     const t = e.target;
     const typing = t.matches && t.matches('input:not([type="range"]), textarea, select, [contenteditable]');
     if (typing) return;
-    if (e.code === 'Space' && !(t.matches && t.matches('button, [role="button"], a, input[type="range"]'))) { e.preventDefault(); togglePlay(); }
-    else if (e.key === 'ArrowRight' && !(t.matches && t.matches('input[type="range"]'))) skip(5);
-    else if (e.key === 'ArrowLeft' && !(t.matches && t.matches('input[type="range"]'))) skip(-5);
-    else if (e.key === 'MediaTrackNext') next();
+    const openModals = $$('.modal').filter(m => !m.hidden);
+    if (openModals.length) {
+      if (e.key === 'Escape') closeModal(openModals[0]);
+      return;
+    }
+    if (e.code === 'Space' && !(t.matches && t.matches('button, [role="button"], a, input[type="range"]'))) {
+      e.preventDefault(); togglePlay();
+    }
+    else if (e.key === 'ArrowRight' && !(t.matches && t.matches('input[type="range"]'))) {
+      e.preventDefault();
+      if (e.shiftKey) next(true); else skip(5);
+    }
+    else if (e.key === 'ArrowLeft' && !(t.matches && t.matches('input[type="range"]'))) {
+      e.preventDefault();
+      if (e.shiftKey) prev(); else skip(-5);
+    }
+    else if (e.key === 'n' || e.key === 'N' || e.key === ']' || e.key === 'k' || e.key === 'K') {
+      e.preventDefault();
+      next(true);
+    }
+    else if (e.key === 'p' || e.key === 'P' || e.key === '[' || e.key === 'j' || e.key === 'J') {
+      e.preventDefault();
+      prev();
+    }
+    else if (e.key === 'ArrowUp' && !(t.matches && t.matches('input[type="range"]'))) {
+      e.preventDefault();
+      S.vol = Math.min(1, Math.round((S.vol + 0.05) * 100) / 100);
+      S.muted = false;
+      store.set('vol', S.vol);
+      applyVolume();
+      toast(`Volume ${Math.round(S.vol * 100)}%`, 1000);
+    }
+    else if (e.key === 'ArrowDown' && !(t.matches && t.matches('input[type="range"]'))) {
+      e.preventDefault();
+      S.vol = Math.max(0, Math.round((S.vol - 0.05) * 100) / 100);
+      S.muted = false;
+      store.set('vol', S.vol);
+      applyVolume();
+      toast(`Volume ${Math.round(S.vol * 100)}%`, 1000);
+    }
+    else if (e.key === 'm' || e.key === 'M') {
+      e.preventDefault();
+      S.muted = !S.muted;
+      applyVolume();
+      toast(S.muted ? 'Muted' : 'Unmuted', 1200);
+    }
+    else if (e.key === 's' || e.key === 'S') {
+      e.preventDefault();
+      toggleShuffle();
+    }
+    else if (e.key === 'r' || e.key === 'R') {
+      e.preventDefault();
+      cycleRepeat();
+    }
+    else if (e.key === 'l' || e.key === 'L') {
+      e.preventDefault();
+      if (S.cur) toggleLike(S.cur);
+    }
+    else if (e.key === '/') {
+      e.preventDefault();
+      const sInput = $('#search');
+      if (sInput) { sInput.focus(); sInput.select(); }
+    }
+    else if (e.key === 'q' || e.key === 'Q') {
+      e.preventDefault();
+      const qModal = $('#queueModal');
+      if (qModal && !qModal.hidden) closeModal(qModal); else openQueue();
+    }
+    else if (e.key === 'MediaTrackNext') next(true);
     else if (e.key === 'MediaTrackPrevious') prev();
   });
 
@@ -1245,6 +1520,165 @@
 
   renderPlaylistNav();
 
+  /* ------------------------------ play queue ------------------------------ */
+  const queueModal = $('#queueModal');
+  const queueList = $('#queueList');
+
+  function openQueue() {
+    renderQueue();
+    openModal(queueModal);
+  }
+
+  function renderQueue() {
+    const curSong = libMap.get(S.cur);
+    if (curSong) {
+      $('#queueCurrTitle').textContent = curSong.title;
+      $('#queueCurrSub').textContent = `${curSong.genre}${curSong.duration ? ' · ' + fmt(curSong.duration) : ''}`;
+    } else {
+      $('#queueCurrTitle').textContent = '—';
+      $('#queueCurrSub').textContent = '—';
+    }
+
+    const curIdx = S.queue.indexOf(S.cur);
+    const upcoming = curIdx >= 0 ? S.queue.slice(curIdx + 1) : S.queue;
+    $('#queueCount').textContent = String(upcoming.length);
+
+    if (!upcoming.length) {
+      queueList.innerHTML = '<p class="queue-empty">Queue is empty — songs will play from your current collection.</p>';
+      return;
+    }
+
+    queueList.innerHTML = upcoming.map((id, idx) => {
+      const s = libMap.get(id);
+      if (!s) return '';
+      const dur = s.duration ? fmt(s.duration) : '';
+      return `<div class="queue-item" data-qid="${s.id}" data-idx="${curIdx + 1 + idx}">` +
+        `<span class="q-idx">${pad2(idx + 1)}</span>` +
+        `<span class="q-thumb" aria-hidden="true"></span>` +
+        `<span class="q-title">${esc(s.title)}</span>` +
+        (dur ? `<span class="q-dur">${dur}</span>` : '') +
+        `<button type="button" class="q-del" data-qdel="${curIdx + 1 + idx}" aria-label="Remove from queue"><svg class="ico"><use href="#i-x"/></svg></button>` +
+        `</div>`;
+    }).join('');
+  }
+
+  queueList.addEventListener('click', e => {
+    const del = e.target.closest('[data-qdel]');
+    if (del) {
+      e.stopPropagation();
+      const idx = Number(del.dataset.qdel);
+      if (idx >= 0 && idx < S.queue.length) {
+        S.queue.splice(idx, 1);
+        renderQueue();
+      }
+      return;
+    }
+    const item = e.target.closest('.queue-item');
+    if (item && item.dataset.qid) {
+      fadeTransition(() => loadSong(item.dataset.qid, true));
+      renderQueue();
+    }
+  });
+
+  $('#queueClearBtn').addEventListener('click', () => {
+    const curIdx = S.queue.indexOf(S.cur);
+    if (curIdx >= 0) S.queue = S.queue.slice(0, curIdx + 1);
+    else S.queue = S.cur ? [S.cur] : [];
+    renderQueue();
+    toast('Upcoming queue cleared', 1600);
+  });
+
+  $('#queueShuffleBtn').addEventListener('click', () => {
+    const curIdx = S.queue.indexOf(S.cur);
+    const before = curIdx >= 0 ? S.queue.slice(0, curIdx + 1) : (S.cur ? [S.cur] : []);
+    const after = curIdx >= 0 ? S.queue.slice(curIdx + 1) : S.queue.filter(id => id !== S.cur);
+    for (let i = after.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [after[i], after[j]] = [after[j], after[i]];
+    }
+    S.queue = before.concat(after);
+    renderQueue();
+    toast('Queue shuffled', 1600);
+  });
+
+  const npQueue = $('#npQueue');
+  if (npQueue) npQueue.addEventListener('click', openQueue);
+
+  /* --------------------------- export & import ---------------------------- */
+  function exportLibrary() {
+    closeSidebar();
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      playlists: S.playlists,
+      liked: Array.from(S.liked),
+      recent: S.recent,
+      settings: {
+        theme: store.get('theme', 'dark'),
+        vol: S.vol,
+        shuffle: S.shuffle,
+        repeatMode: S.repeatMode,
+        speed: speed
+      }
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `stereo-library-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 20000);
+    toast('Library exported successfully! 📁', 2400);
+  }
+
+  const exportBtn = $('#exportBtn');
+  if (exportBtn) exportBtn.addEventListener('click', exportLibrary);
+
+  const importInput = $('#importInput');
+  const importBtn = $('#importBtn');
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', () => {
+      closeSidebar();
+      importInput.value = '';
+      importInput.click();
+    });
+
+    importInput.addEventListener('change', async () => {
+      const file = importInput.files && importInput.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+        if (Array.isArray(data.playlists)) {
+          S.playlists = data.playlists;
+          savePlaylists();
+          renderPlaylistNav();
+        }
+        if (Array.isArray(data.liked)) {
+          S.liked = new Set(data.liked);
+          store.set('liked', Array.from(S.liked));
+        }
+        if (Array.isArray(data.recent)) {
+          S.recent = data.recent;
+          store.set('recent', S.recent);
+        }
+        if (data.settings) {
+          if (data.settings.theme) { applyTheme(data.settings.theme); store.set('theme', data.settings.theme); }
+          if (data.settings.vol != null) { S.vol = Number(data.settings.vol); applyVolume(); }
+          if (data.settings.repeatMode) { applyRepeatMode(data.settings.repeatMode); }
+          if (data.settings.speed != null) { applySpeed(data.settings.speed); }
+        }
+        renderList(true);
+        toast('Library & playlists restored! 🎉', 3200);
+      } catch (err) {
+        toast('Failed to import backup file. Ensure it is a valid JSON file.', 3500);
+      }
+    });
+  }
+
   /* Android app: tell the app when music plays so it keeps running with the screen off */
   if (window.StereoAndroid && window.StereoAndroid.setPlaying) {
     const notifyApp = playing => {
@@ -1350,6 +1784,8 @@
   /* ---------------------------------- boot -------------------------------- */
   async function boot() {
     applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+    applyRepeatMode(S.repeatMode);
+    syncShuffle();
 
     // restore the songs the visitor added on this device
     try {
@@ -1359,9 +1795,23 @@
       rebuildLib();
     } catch (e) { /* no IndexedDB (private mode) — defaults only */ }
 
+    // check cached offline audio files
+    try {
+      if ('caches' in window) {
+        const c = await caches.open('stereo-audio-v1');
+        const keys = await c.keys();
+        const urls = new Set(keys.map(k => k.url));
+        lib.forEach(s => {
+          if (urls.has(s.src) || urls.has(new URL(s.src, location.href).href)) {
+            S.offline.add(s.id);
+          }
+        });
+      }
+    } catch (e) {}
+
     const last = store.get('last', null);
     S.cur = libMap.has(last) ? last : (lib[0] && lib[0].id);
-    S.queue = lib.map(s => s.id);
+    setQueueFromView();
     showView('list', false);
     renderList(true);
     if (S.cur) { audio.src = libMap.get(S.cur).src; syncNow(); }

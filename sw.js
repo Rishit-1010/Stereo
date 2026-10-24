@@ -1,10 +1,11 @@
 /* Rishit's Stereo — service worker
-   - the player's own files: network first (updates reach everyone right away), cached copy when offline
-   - logos / covers / fonts: cached after the first visit so they appear instantly
-   - songs (audio) are never touched: they stream straight from GitHub */
+   - player shell & assets: network first, cached copy when offline
+   - logos / covers / fonts: cached after first visit
+   - audio caching: supports offline audio playback with 206 range request handling */
 'use strict';
 
-const CACHE = 'stereo-v3';
+const CACHE = 'stereo-v4';
+const AUDIO_CACHE = 'stereo-audio-v1';
 const SHELL = [
   './', './index.html', './style.css', './script.js', './songs.js', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
@@ -22,15 +23,53 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== AUDIO_CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
+async function handleAudioRequest(req) {
+  const cacheHit = (await caches.match(req, { ignoreSearch: true })) || (await caches.open(AUDIO_CACHE).then(c => c.match(req, { ignoreSearch: true })));
+  if (!cacheHit) {
+    return fetch(req);
+  }
+  const rangeHeader = req.headers.get('range');
+  if (!rangeHeader) {
+    return cacheHit;
+  }
+  try {
+    const arrayBuffer = await cacheHit.arrayBuffer();
+    const total = arrayBuffer.byteLength;
+    const match = /bytes=(\d+)-(\d+)?/.exec(rangeHeader);
+    if (!match) return cacheHit;
+    const start = parseInt(match[1], 10);
+    const end = match[2] ? parseInt(match[2], 10) : total - 1;
+    const sliced = arrayBuffer.slice(start, end + 1);
+    return new Response(sliced, {
+      status: 206,
+      statusText: 'Partial Content',
+      headers: {
+        'Content-Type': cacheHit.headers.get('Content-Type') || 'audio/mpeg',
+        'Content-Range': `bytes ${start}-${end}/${total}`,
+        'Content-Length': String(sliced.byteLength),
+        'Accept-Ranges': 'bytes'
+      }
+    });
+  } catch (err) {
+    return cacheHit;
+  }
+}
+
 self.addEventListener('fetch', event => {
   const req = event.request;
-  if (req.method !== 'GET' || req.headers.has('range')) return; /* never touch audio streaming */
+  if (req.method !== 'GET') return;
   const url = new URL(req.url);
+
+  const isAudio = /\.(mp3|m4a|aac|wav|ogg|opus)$/i.test(url.pathname) || url.pathname.includes('/tracks/') || url.pathname.includes('/releases/download/');
+  if (isAudio) {
+    event.respondWith(handleAudioRequest(req));
+    return;
+  }
 
   if (url.origin === self.location.origin) {
     event.respondWith(

@@ -92,6 +92,11 @@
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
     <symbol id="i-speed" viewBox="0 0 24 24"><path d="M4.9 19.1a10 10 0 1 1 14.2 0"/><path d="M12 14l4.5-4.5"/><circle cx="12" cy="14" r="1.2"/></symbol>
     <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></symbol>
+    <symbol id="i-repeat-1" viewBox="0 0 24 24"><path d="M8 3 4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/><path d="M12 9v6M10.5 10.5 12 9"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20l16-16M21 16v5h-5M15 15l6 6M4 4l5 5"/></symbol>
+    <symbol id="i-queue" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="10" y1="8" x2="10.01" y2="8"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="18" y1="8" x2="18.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="18" y1="12" x2="18.01" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></symbol>
+    <symbol id="i-cloud-check" viewBox="0 0 24 24"><path d="M20 16.2A4.5 4.5 0 0 0 17.5 8h-1.8A7 7 0 1 0 4 14.9"/><polyline points="9 15 12 18 16 13"/></symbol>
     <symbol id="i-expand" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
@@ -139,6 +144,9 @@
       <!-- shown only where the player can be installed (hidden once installed, and inside the Android/desktop apps) -->
       <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install app</span></button>
       <button type="button" class="add-btn share-btn" id="shareBtn"><svg class="ico"><use href="#i-share"/></svg><span>Share Stereo</span></button>
+      <button type="button" class="add-btn export-btn" id="exportBtn"><svg class="ico"><use href="#i-download"/></svg><span>Export Library</span></button>
+      <button type="button" class="add-btn import-btn" id="importBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Import Library</span></button>
+      <input type="file" id="importInput" accept=".json,application/json" hidden>
     </nav>
   </aside>
   <div id="backdrop" aria-hidden="true"></div>
@@ -192,6 +200,8 @@
           <span class="np-label">NOW PLAYING</span>
           <div class="np-actions">
             <button class="circle-btn" id="npDelete" type="button" aria-label="Remove this song" hidden><svg class="ico i-act"><use href="#i-trash"/></svg></button>
+            <button class="circle-btn" id="npOffline" type="button" aria-label="Save for offline" title="Save for offline"><svg class="ico i-act"><use href="#i-cloud-check"/></svg></button>
+            <button class="circle-btn" id="npQueue" type="button" aria-label="Up Next / Queue" title="Up Next / Queue"><svg class="ico i-act"><use href="#i-queue"/></svg></button>
             <button class="circle-btn" id="npDownload" type="button" aria-label="Download song"><svg class="ico i-act"><use href="#i-download"/></svg></button>
             <button class="circle-btn like-btn" id="npLike" type="button" aria-label="Like" aria-pressed="false"><svg class="ico i-act"><use href="#i-heart"/></svg></button>
             <button class="circle-btn" id="npPlaylist" type="button" aria-label="Add to playlist"><svg class="ico i-act"><use href="#i-plus"/></svg></button>
@@ -239,7 +249,8 @@
               <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
               <span class="grow"></span>
               <button type="button" class="ext ext-speed" data-act="speed" aria-label="Playback speed" title="Playback speed"><svg class="ico"><use href="#i-speed"/></svg></button>
-              <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat this song" aria-pressed="false"><svg class="ico"><use href="#i-repeat"/></svg></button>
+              <button type="button" class="ext ext-shuffle" data-act="shuffle" aria-label="Shuffle" title="Shuffle" aria-pressed="false"><svg class="ico"><use href="#i-shuffle"/></svg></button>
+              <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat mode" title="Repeat: off" data-repeat-mode="off"><svg class="ico rep-ico"><use href="#i-repeat"/></svg></button>
               <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
             </div>
           </div>
@@ -271,8 +282,10 @@
     </div>
 
     <div class="pl-right">
-      <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat this song" aria-pressed="false"><svg class="ico"><use href="#i-repeat"/></svg></button>
+      <button type="button" class="ext ext-shuffle" data-act="shuffle" aria-label="Shuffle" title="Shuffle" aria-pressed="false"><svg class="ico"><use href="#i-shuffle"/></svg></button>
+      <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat mode" title="Repeat: off" data-repeat-mode="off"><svg class="ico rep-ico"><use href="#i-repeat"/></svg></button>
       <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
+      <button type="button" class="ext ext-queue" data-act="queue" aria-label="Up Next / Queue" title="Up Next / Queue"><svg class="ico"><use href="#i-queue"/></svg></button>
       <button type="button" class="ext ext-vol" data-act="mute" aria-label="Mute"><svg class="ico v-on"><use href="#i-vol"/></svg><svg class="ico v-off"><use href="#i-mute"/></svg></button>
       <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
       <button type="button" class="ext ext-expand" data-act="expand" aria-label="Open now playing"><svg class="ico"><use href="#i-expand"/></svg></button>
@@ -423,6 +436,36 @@
     </div>
   </div>
 </div>
+
+<!-- =========================== PLAY QUEUE / UP NEXT =========================== -->
+<div class="modal" id="queueModal" hidden role="dialog" aria-modal="true" aria-labelledby="queueTitle">
+  <div class="sheet queue-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">UP NEXT</p>
+    <div class="queue-head-row">
+      <h2 class="sheet-title" id="queueTitle">Play Queue</h2>
+      <button type="button" class="queue-clear-btn" id="queueClearBtn">Clear queue</button>
+    </div>
+    <div class="queue-current-card" id="queueCurrentCard">
+      <p class="queue-sec-label">NOW PLAYING</p>
+      <div class="queue-curr-track" id="queueCurrTrack">
+        <span class="thumb" id="queueCurrThumb"></span>
+        <div class="queue-curr-meta">
+          <span class="queue-curr-title" id="queueCurrTitle">—</span>
+          <span class="queue-curr-sub" id="queueCurrSub">—</span>
+        </div>
+      </div>
+    </div>
+    <p class="queue-sec-label">UPCOMING SONGS (<span id="queueCount">0</span>)</p>
+    <div class="queue-list" id="queueList" role="list"></div>
+    <div class="sheet-actions">
+      <button type="button" class="ghost-btn" id="queueShuffleBtn"><svg class="ico"><use href="#i-shuffle"/></svg><span>Shuffle Queue</span></button>
+      <button type="button" class="start-btn" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- ============================== THEME PICKER ============================== -->
 <div class="theme-scrim" id="themeScrim" hidden></div>
