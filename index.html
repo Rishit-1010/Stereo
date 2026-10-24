@@ -32,11 +32,23 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anta&family=Anton&family=Karla:wght@400;500&family=Manufacturing+Consent&family=Parkinsans:wght@300;600;700&family=Quicksand:wght@400&family=Roboto+Mono:wght@700&display=swap">
 
 <script>
-  /* Load every logo and cover from the GitHub repo as soon as the site opens,
-     for both themes, so switching theme or opening Now Playing never waits on an image. */
+  /* Remember which theme is saved, and start loading that theme's logo and covers as soon as the site
+     opens, so opening Now Playing never waits on an image. (Other themes load when they are picked.) */
   (function () {
     var RAW = 'https://raw.githubusercontent.com/Rishit-1010/Stereo/main/';
-    var FILES = ['Logo.png', 'Logo1.png', 'Cover.png', 'Cover2.png', 'CoverBig.png', 'CoverBig1.png', 'favicon.ico'];
+    var IDS = ['dark', 'light', 'dark-red', 'dark-yellow', 'dark-blue', 'dark-violet',
+               'light-maroon', 'light-green', 'light-yellow', 'light-purple'];
+    var id = null;
+    try {
+      var t = JSON.parse(localStorage.getItem('stereo.theme'));
+      if (IDS.indexOf(t) >= 0) id = t;
+    } catch (e) {}
+    window.__stereoThemeId = id;
+    var base = ['Logo.png', 'Cover.png', 'CoverBig.png'];
+    var FILES = (id === 'light') ? ['Logo1.png', 'Cover2.png', 'CoverBig1.png']
+              : (!id || id === 'dark') ? base
+              : base.map(function (f) { return 'themes/' + id + '/' + f; });
+    FILES = FILES.concat(['favicon.ico']);
     window.__stereoImages = FILES.map(function (f) {
       var img = new Image();
       img.decoding = 'async';
@@ -50,10 +62,10 @@
 <script>
   /* apply the saved theme before the page paints (no flash) */
   try {
-    var t = JSON.parse(localStorage.getItem('stereo.theme'));
-    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    var id = window.__stereoThemeId;
+    if (id) document.documentElement.setAttribute('data-theme', id);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#000000');
+    if (m) m.setAttribute('content', id && id.indexOf('light') === 0 ? '#ffffff' : '#000000');
   } catch (e) {}
 </script>
 </head>
@@ -89,6 +101,8 @@
     <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
   </defs>
 </svg>
@@ -138,10 +152,11 @@
       <svg class="ico"><use href="#i-search"/></svg>
       <input id="search" type="search" placeholder="Search your library..." autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="Search your library">
     </label>
-    <button class="circle-btn theme-btn" id="themeBtn" type="button" aria-label="Switch theme">
-      <svg class="ico t-sun"><use href="#i-sun"/></svg>
-      <svg class="ico t-moon"><use href="#i-moon"/></svg>
-    </button>
+    <button class="theme-trigger" id="themeBtn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="themeList" aria-label="Choose theme" title="Choose theme">
+        <span class="sw" id="themeSw" aria-hidden="true"></span>
+        <span class="theme-name" id="themeName">Dark (Lime)</span>
+        <svg class="ico tt-caret" aria-hidden="true"><use href="#i-caret"/></svg>
+      </button>
     <div class="avatar" aria-hidden="true">RM</div>
   </header>
 
@@ -187,7 +202,6 @@
           <div class="np-art">
             <div class="np-glow" aria-hidden="true"></div>
             <div class="np-art-img" id="npArt" role="img" aria-label="Album art"></div>
-            <div class="np-shine" aria-hidden="true"></div>
             <div class="np-eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
 
@@ -197,9 +211,17 @@
             <p class="np-genre" id="npGenre">—</p>
 
             <div class="np-seek">
+              <div class="wave-bar" aria-hidden="true">
+                <span class="wb-rest"></span>
+                <span class="wb-wave"></span>
+                <span class="wb-knob"></span>
+              </div>
               <input class="range seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek" data-seek>
             </div>
-            <span class="time" id="npTime">0:00</span>
+            <div class="np-times">
+              <span class="time" id="npTime">0:00</span>
+              <span class="time" id="npDur">0:00</span>
+            </div>
 
             <div class="np-controls">
               <button type="button" class="ctl ctl-skip" data-act="prev" aria-label="Previous"><svg class="ico"><use href="#i-prev"/></svg></button>
@@ -401,6 +423,10 @@
     </div>
   </div>
 </div>
+
+<!-- ============================== THEME PICKER ============================== -->
+<div class="theme-scrim" id="themeScrim" hidden></div>
+<div class="theme-pop" id="themeList" role="listbox" aria-label="Theme" hidden></div>
 
 <input type="file" id="fileInput" accept="audio/mpeg,audio/mp3,audio/*,.mp3" multiple hidden>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

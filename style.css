@@ -148,6 +148,556 @@
   --toast-bg: #000455;
   --toast-fg: #fff;
   --heart-on: #000455;
+  --track-player: #e6e7ff;
+}
+
+/* ==========================================================================
+   EXTRA THEMES — generated from the original dark / light palettes.
+   Each block has the same variables as the originals, recoloured.
+   ========================================================================== */
+
+/* ---------- DARK (RED) ---------- */
+:root[data-theme="dark-red"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-np: #000000;
+  --side: #080000;
+  --accent: #ff3434;
+  --on-accent: #000000;
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #bfbfbf;
+  --label: #c4c4c4;
+  --label-2: #9a9a9a;
+  --coll-label: #c2c2c2;
+  --coll-title: #ededed;
+  --item: #0f0f0f;
+  --item-active: #2e0000;
+  --item-active-line: #ff3434;
+  --item-active-text: #ff3434;
+  --row: #0a0000;
+  --row-playing: #120000;
+  --row-line: transparent;
+  --row-playing-line: #ff3434;
+  --row-title: #ffffff;
+  --row-title-playing: #ff3434;
+  --pb-bg: #260000;
+  --pb-fg: #ff3434;
+  --pbp-bg: #ff3434;
+  --pbp-fg: #000000;
+  --bar: #1a0000;
+  --bar-line: #ff3434;
+  --track: #2e2e2e;
+  --circle-fill: #050505;
+  --circle-line: rgba(255, 52, 52, .6);
+  --circle-fg: #ff3434;
+  --search-bg: #000000;
+  --search-line: #ededed;
+  --search-text: #ededed;
+  --head-line: #ff3434;
+  --avatar-bg: #ff3434;
+  --avatar-fg: #000000;
+  --ctl: #ff3434;
+  --ext: #bfbfbf;
+  --play-big-bg: #ff3434;
+  --play-big-fg: #000000;
+  --scroll: #3a0000;
+  --overlay: rgba(0, 0, 0, .62);
+  --sheet: #0d0404;
+  --sheet-line: rgba(255, 52, 52, .16);
+  --chip: #160a0a;
+  --chip-line: #2a1010;
+  --input: #160a0a;
+  --input-line: #301818;
+  --input-ph: #574040;
+  --sheet-text: #ffffff;
+  --sheet-eyebrow: #9a9a9a;
+  --sheet-muted: #bfbfbf;
+  --rule: #200808;
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-red/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-red/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-red/CoverBig.png');
+  --toast-bg: #1a0000;
+  --toast-fg: #ededed;
+  --heart-on: #ff3434;
+}
+
+/* ---------- DARK (YELLOW) ---------- */
+:root[data-theme="dark-yellow"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-np: #000000;
+  --side: #080800;
+  --accent: #f4ff00;
+  --on-accent: #000000;
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #bfbfbf;
+  --label: #c4c4c4;
+  --label-2: #9a9a9a;
+  --coll-label: #c2c2c2;
+  --coll-title: #ededed;
+  --item: #0f0f0f;
+  --item-active: #2c2e00;
+  --item-active-line: #f4ff00;
+  --item-active-text: #f4ff00;
+  --row: #0a0a00;
+  --row-playing: #111200;
+  --row-line: transparent;
+  --row-playing-line: #f4ff00;
+  --row-title: #ffffff;
+  --row-title-playing: #f4ff00;
+  --pb-bg: #242600;
+  --pb-fg: #f4ff00;
+  --pbp-bg: #f4ff00;
+  --pbp-fg: #000000;
+  --bar: #191a00;
+  --bar-line: #f4ff00;
+  --track: #2e2e2e;
+  --circle-fill: #050505;
+  --circle-line: rgba(244, 255, 0, .6);
+  --circle-fg: #f4ff00;
+  --search-bg: #000000;
+  --search-line: #ededed;
+  --search-text: #ededed;
+  --head-line: #f4ff00;
+  --avatar-bg: #f4ff00;
+  --avatar-fg: #000000;
+  --ctl: #f4ff00;
+  --ext: #bfbfbf;
+  --play-big-bg: #f4ff00;
+  --play-big-fg: #000000;
+  --scroll: #373a00;
+  --overlay: rgba(0, 0, 0, .62);
+  --sheet: #0d0d04;
+  --sheet-line: rgba(244, 255, 0, .16);
+  --chip: #15160a;
+  --chip-line: #292a10;
+  --input: #15160a;
+  --input-line: #2f3018;
+  --input-ph: #565740;
+  --sheet-text: #ffffff;
+  --sheet-eyebrow: #9a9a9a;
+  --sheet-muted: #bfbfbf;
+  --rule: #1f2008;
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-yellow/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-yellow/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-yellow/CoverBig.png');
+  --toast-bg: #191a00;
+  --toast-fg: #ededed;
+  --heart-on: #f4ff00;
+}
+
+/* ---------- DARK (BLUE) ---------- */
+:root[data-theme="dark-blue"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-np: #000000;
+  --side: #000608;
+  --accent: #3cc4ff;
+  --on-accent: #000000;
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #bfbfbf;
+  --label: #c4c4c4;
+  --label-2: #9a9a9a;
+  --coll-label: #c2c2c2;
+  --coll-title: #ededed;
+  --item: #0f0f0f;
+  --item-active: #00202e;
+  --item-active-line: #3cc4ff;
+  --item-active-text: #3cc4ff;
+  --row: #00070a;
+  --row-playing: #000d12;
+  --row-line: transparent;
+  --row-playing-line: #3cc4ff;
+  --row-title: #ffffff;
+  --row-title-playing: #3cc4ff;
+  --pb-bg: #001b26;
+  --pb-fg: #3cc4ff;
+  --pbp-bg: #3cc4ff;
+  --pbp-fg: #000000;
+  --bar: #00121a;
+  --bar-line: #3cc4ff;
+  --track: #2e2e2e;
+  --circle-fill: #050505;
+  --circle-line: rgba(60, 196, 255, .6);
+  --circle-fg: #3cc4ff;
+  --search-bg: #000000;
+  --search-line: #ededed;
+  --search-text: #ededed;
+  --head-line: #3cc4ff;
+  --avatar-bg: #3cc4ff;
+  --avatar-fg: #000000;
+  --ctl: #3cc4ff;
+  --ext: #bfbfbf;
+  --play-big-bg: #3cc4ff;
+  --play-big-fg: #000000;
+  --scroll: #00283a;
+  --overlay: rgba(0, 0, 0, .62);
+  --sheet: #040a0d;
+  --sheet-line: rgba(60, 196, 255, .16);
+  --chip: #0a1216;
+  --chip-line: #10222a;
+  --input: #0a1216;
+  --input-line: #182930;
+  --input-ph: #405057;
+  --sheet-text: #ffffff;
+  --sheet-eyebrow: #9a9a9a;
+  --sheet-muted: #bfbfbf;
+  --rule: #081920;
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-blue/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-blue/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-blue/CoverBig.png');
+  --toast-bg: #00121a;
+  --toast-fg: #ededed;
+  --heart-on: #3cc4ff;
+}
+
+/* ---------- DARK (VIOLET) ---------- */
+:root[data-theme="dark-violet"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-np: #000000;
+  --side: #030008;
+  --accent: #b78cff;
+  --on-accent: #000000;
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #bfbfbf;
+  --label: #c4c4c4;
+  --label-2: #9a9a9a;
+  --coll-label: #c2c2c2;
+  --coll-title: #ededed;
+  --item: #0f0f0f;
+  --item-active: #11002e;
+  --item-active-line: #b78cff;
+  --item-active-text: #b78cff;
+  --row: #04000a;
+  --row-playing: #070012;
+  --row-line: transparent;
+  --row-playing-line: #b78cff;
+  --row-title: #ffffff;
+  --row-title-playing: #b78cff;
+  --pb-bg: #0e0026;
+  --pb-fg: #b78cff;
+  --pbp-bg: #b78cff;
+  --pbp-fg: #000000;
+  --bar: #0a001a;
+  --bar-line: #b78cff;
+  --track: #2e2e2e;
+  --circle-fill: #050505;
+  --circle-line: rgba(183, 140, 255, .6);
+  --circle-fg: #b78cff;
+  --search-bg: #000000;
+  --search-line: #ededed;
+  --search-text: #ededed;
+  --head-line: #b78cff;
+  --avatar-bg: #b78cff;
+  --avatar-fg: #000000;
+  --ctl: #b78cff;
+  --ext: #bfbfbf;
+  --play-big-bg: #b78cff;
+  --play-big-fg: #000000;
+  --scroll: #16003a;
+  --overlay: rgba(0, 0, 0, .62);
+  --sheet: #07040d;
+  --sheet-line: rgba(183, 140, 255, .16);
+  --chip: #0e0a16;
+  --chip-line: #1a102a;
+  --input: #0e0a16;
+  --input-line: #211830;
+  --input-ph: #494057;
+  --sheet-text: #ffffff;
+  --sheet-eyebrow: #9a9a9a;
+  --sheet-muted: #bfbfbf;
+  --rule: #110820;
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/CoverBig.png');
+  --toast-bg: #0a001a;
+  --toast-fg: #ededed;
+  --heart-on: #b78cff;
+}
+
+/* ---------- LIGHT (MAROON) ---------- */
+:root[data-theme="light-maroon"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-np: #fdeff1;
+  --side: #fdeff1;
+  --accent: #7a0a1e;
+  --on-accent: #ffffff;
+  --text: #7a0a1e;
+  --text-strong: #7a0a1e;
+  --muted: #7a0a1e;
+  --label: #7a0a1e;
+  --label-2: #7a0a1e;
+  --coll-label: #7a0a1e;
+  --coll-title: #7a0a1e;
+  --item: #fce1e6;
+  --item-active: #f8c0ca;
+  --item-active-line: #7a0a1e;
+  --item-active-text: #7a0a1e;
+  --row: #fad1d8;
+  --row-playing: #f8c0ca;
+  --row-line: transparent;
+  --row-playing-line: #7a0a1e;
+  --row-title: #7a0a1e;
+  --row-title-playing: #7a0a1e;
+  --pb-bg: #f9cbd3;
+  --pb-fg: #7a0a1e;
+  --pbp-bg: #7a0a1e;
+  --pbp-fg: #ffffff;
+  --bar: #f6b1bd;
+  --bar-line: #7a0a1e;
+  --track: #f6b1bd;
+  --circle-fill: #ffffff;
+  --circle-line: #7a0a1e;
+  --circle-fg: #7a0a1e;
+  --search-bg: #ffffff;
+  --search-line: #7a0a1e;
+  --search-text: #7a0a1e;
+  --head-line: #7a0a1e;
+  --avatar-bg: #7a0a1e;
+  --avatar-fg: #ffffff;
+  --ctl: #7a0a1e;
+  --ext: #7a0a1e;
+  --play-big-bg: #7a0a1e;
+  --play-big-fg: #ffffff;
+  --scroll: #f6b1bd;
+  --overlay: rgba(122, 10, 30, .38);
+  --sheet: #fdeff1;
+  --sheet-line: rgba(122, 10, 30, .22);
+  --chip: #fce1e6;
+  --chip-line: rgba(122, 10, 30, .22);
+  --input: #fce1e6;
+  --input-line: rgba(122, 10, 30, .28);
+  --input-ph: rgba(122, 10, 30, .4);
+  --sheet-text: #7a0a1e;
+  --sheet-eyebrow: #7a0a1e;
+  --sheet-muted: #7a0a1e;
+  --rule: rgba(122, 10, 30, .16);
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/CoverBig.png');
+  --toast-bg: #7a0a1e;
+  --toast-fg: #ffffff;
+  --heart-on: #7a0a1e;
+  --track-player: #fce8ec;
+}
+
+/* ---------- LIGHT (GREEN) ---------- */
+:root[data-theme="light-green"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-np: #effdf6;
+  --side: #effdf6;
+  --accent: #0a5c34;
+  --on-accent: #ffffff;
+  --text: #0a5c34;
+  --text-strong: #0a5c34;
+  --muted: #0a5c34;
+  --label: #0a5c34;
+  --label-2: #0a5c34;
+  --coll-label: #0a5c34;
+  --coll-title: #0a5c34;
+  --item: #e1fcef;
+  --item-active: #c0f8dd;
+  --item-active-line: #0a5c34;
+  --item-active-text: #0a5c34;
+  --row: #d1fae6;
+  --row-playing: #c0f8dd;
+  --row-line: transparent;
+  --row-playing-line: #0a5c34;
+  --row-title: #0a5c34;
+  --row-title-playing: #0a5c34;
+  --pb-bg: #cbf9e3;
+  --pb-fg: #0a5c34;
+  --pbp-bg: #0a5c34;
+  --pbp-fg: #ffffff;
+  --bar: #b1f6d4;
+  --bar-line: #0a5c34;
+  --track: #b1f6d4;
+  --circle-fill: #ffffff;
+  --circle-line: #0a5c34;
+  --circle-fg: #0a5c34;
+  --search-bg: #ffffff;
+  --search-line: #0a5c34;
+  --search-text: #0a5c34;
+  --head-line: #0a5c34;
+  --avatar-bg: #0a5c34;
+  --avatar-fg: #ffffff;
+  --ctl: #0a5c34;
+  --ext: #0a5c34;
+  --play-big-bg: #0a5c34;
+  --play-big-fg: #ffffff;
+  --scroll: #b1f6d4;
+  --overlay: rgba(10, 92, 52, .38);
+  --sheet: #effdf6;
+  --sheet-line: rgba(10, 92, 52, .22);
+  --chip: #e1fcef;
+  --chip-line: rgba(10, 92, 52, .22);
+  --input: #e1fcef;
+  --input-line: rgba(10, 92, 52, .28);
+  --input-ph: rgba(10, 92, 52, .4);
+  --sheet-text: #0a5c34;
+  --sheet-eyebrow: #0a5c34;
+  --sheet-muted: #0a5c34;
+  --rule: rgba(10, 92, 52, .16);
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/CoverBig.png');
+  --toast-bg: #0a5c34;
+  --toast-fg: #ffffff;
+  --heart-on: #0a5c34;
+  --track-player: #e8fcf3;
+}
+
+/* ---------- LIGHT (YELLOW) ---------- */
+:root[data-theme="light-yellow"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-np: #fef9ee;
+  --side: #fef9ee;
+  --accent: #8f6500;
+  --on-accent: #ffffff;
+  --text: #8f6500;
+  --text-strong: #8f6500;
+  --muted: #8f6500;
+  --label: #8f6500;
+  --label-2: #8f6500;
+  --coll-label: #8f6500;
+  --coll-title: #8f6500;
+  --item: #fdf4e0;
+  --item-active: #fae8be;
+  --item-active-line: #8f6500;
+  --item-active-text: #8f6500;
+  --row: #fbeed0;
+  --row-playing: #fae8be;
+  --row-line: transparent;
+  --row-playing-line: #8f6500;
+  --row-title: #8f6500;
+  --row-title-playing: #8f6500;
+  --pb-bg: #fbecc9;
+  --pb-fg: #8f6500;
+  --pbp-bg: #8f6500;
+  --pbp-fg: #ffffff;
+  --bar: #f8e3af;
+  --bar-line: #8f6500;
+  --track: #f8e3af;
+  --circle-fill: #ffffff;
+  --circle-line: #8f6500;
+  --circle-fg: #8f6500;
+  --search-bg: #ffffff;
+  --search-line: #8f6500;
+  --search-text: #8f6500;
+  --head-line: #8f6500;
+  --avatar-bg: #8f6500;
+  --avatar-fg: #ffffff;
+  --ctl: #8f6500;
+  --ext: #8f6500;
+  --play-big-bg: #8f6500;
+  --play-big-fg: #ffffff;
+  --scroll: #f8e3af;
+  --overlay: rgba(143, 101, 0, .38);
+  --sheet: #fef9ee;
+  --sheet-line: rgba(143, 101, 0, .22);
+  --chip: #fdf4e0;
+  --chip-line: rgba(143, 101, 0, .22);
+  --input: #fdf4e0;
+  --input-line: rgba(143, 101, 0, .28);
+  --input-ph: rgba(143, 101, 0, .4);
+  --sheet-text: #8f6500;
+  --sheet-eyebrow: #8f6500;
+  --sheet-muted: #8f6500;
+  --rule: rgba(143, 101, 0, .16);
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/CoverBig.png');
+  --toast-bg: #8f6500;
+  --toast-fg: #ffffff;
+  --heart-on: #8f6500;
+  --track-player: #fdf7e8;
+}
+
+/* ---------- LIGHT (PURPLE) ---------- */
+:root[data-theme="light-purple"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-np: #f5effd;
+  --side: #f5effd;
+  --accent: #4a1790;
+  --on-accent: #ffffff;
+  --text: #4a1790;
+  --text-strong: #4a1790;
+  --muted: #4a1790;
+  --label: #4a1790;
+  --label-2: #4a1790;
+  --coll-label: #4a1790;
+  --coll-title: #4a1790;
+  --item: #ece1fc;
+  --item-active: #d8c0f8;
+  --item-active-line: #4a1790;
+  --item-active-text: #4a1790;
+  --row: #e2d1fa;
+  --row-playing: #d8c0f8;
+  --row-line: transparent;
+  --row-playing-line: #4a1790;
+  --row-title: #4a1790;
+  --row-title-playing: #4a1790;
+  --pb-bg: #decbf9;
+  --pb-fg: #4a1790;
+  --pbp-bg: #4a1790;
+  --pbp-fg: #ffffff;
+  --bar: #ceb1f6;
+  --bar-line: #4a1790;
+  --track: #ceb1f6;
+  --circle-fill: #ffffff;
+  --circle-line: #4a1790;
+  --circle-fg: #4a1790;
+  --search-bg: #ffffff;
+  --search-line: #4a1790;
+  --search-text: #4a1790;
+  --head-line: #4a1790;
+  --avatar-bg: #4a1790;
+  --avatar-fg: #ffffff;
+  --ctl: #4a1790;
+  --ext: #4a1790;
+  --play-big-bg: #4a1790;
+  --play-big-fg: #ffffff;
+  --scroll: #ceb1f6;
+  --overlay: rgba(74, 23, 144, .38);
+  --sheet: #f5effd;
+  --sheet-line: rgba(74, 23, 144, .22);
+  --chip: #ece1fc;
+  --chip-line: rgba(74, 23, 144, .22);
+  --input: #ece1fc;
+  --input-line: rgba(74, 23, 144, .28);
+  --input-ph: rgba(74, 23, 144, .4);
+  --sheet-text: #4a1790;
+  --sheet-eyebrow: #4a1790;
+  --sheet-muted: #4a1790;
+  --rule: rgba(74, 23, 144, .16);
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/CoverBig.png');
+  --toast-bg: #4a1790;
+  --toast-fg: #ffffff;
+  --heart-on: #4a1790;
+  --track-player: #f1e8fc;
+}
+
+/* phone / tablet: the same per-mode tweaks the original themes get */
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  :root[data-theme="dark-red"] { --coll-label: #ff3434; --coll-title: #ff3434; --bg-np: #190000; }
+  :root[data-theme="dark-yellow"] { --coll-label: #f4ff00; --coll-title: #f4ff00; --bg-np: #181900; }
+  :root[data-theme="dark-blue"] { --coll-label: #3cc4ff; --coll-title: #3cc4ff; --bg-np: #001119; }
+  :root[data-theme="dark-violet"] { --coll-label: #b78cff; --coll-title: #b78cff; --bg-np: #090019; }
+  :root[data-theme="light-maroon"] { --row-playing: #f6b1bd; }
+  :root[data-theme="light-green"] { --row-playing: #b1f6d4; }
+  :root[data-theme="light-yellow"] { --row-playing: #f8e3af; }
+  :root[data-theme="light-purple"] { --row-playing: #ceb1f6; }
 }
 
 /* --------------------------------- base --------------------------------- */
@@ -295,7 +845,45 @@ input { font: inherit; color: inherit; }
 .search input::placeholder { color: var(--search-text); opacity: 1; }
 .search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 .search:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
-.theme-btn { margin-left: auto; margin-right: 20px; }
+/* theme picker: a dropdown (bottom sheet on phones) instead of the old sun/moon button */
+.theme-trigger {
+  margin-left: auto; margin-right: 20px; flex: none;
+  display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px 0 10px;
+  border-radius: 30px; border: 1px solid var(--circle-line); background: var(--circle-fill); color: var(--circle-fg);
+  font: 500 14px/1 var(--f-karla); white-space: nowrap;
+  transition: transform .2s var(--ease), box-shadow .2s, border-color .2s;
+}
+.theme-trigger .tt-caret { width: 16px; height: 16px; transition: transform .2s var(--ease); }
+.theme-trigger[aria-expanded="true"] { border-color: var(--accent); }
+.theme-trigger[aria-expanded="true"] .tt-caret { transform: rotate(180deg); }
+.theme-trigger:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* round colour swatch: page colour on one half, accent on the other */
+.sw {
+  --sw-bg: #000; --sw-ac: var(--accent);
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--sw-bg) 0 50%, var(--sw-ac) 50% 100%);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--sw-ac) 75%, #808080);
+}
+.theme-pop {
+  position: fixed; z-index: 130; top: 0; right: 0; width: 236px; padding: 8px;
+  background: var(--sheet); color: var(--sheet-text); border: 1px solid var(--sheet-line); border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45); animation: pop .2s var(--ease);
+  max-height: calc(100dvh - 90px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--scroll) transparent;
+}
+.theme-scrim { display: none; }
+.theme-pop[hidden], .theme-scrim[hidden] { display: none; }
+.tm-title { display: none; margin: 0; }
+.tm-head { grid-column: 1 / -1; margin: 8px 10px 4px; font: 700 11px/1 var(--f-mono); letter-spacing: 2.2px; color: var(--sheet-eyebrow); opacity: .8; }
+.tm-group + .tm-group { margin-top: 6px; padding-top: 2px; border-top: 1px solid var(--rule); }
+.tm-opt {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 10px; border-radius: 12px; text-align: left;
+  font: 500 15px/1.2 var(--f-karla); color: var(--sheet-text); transition: background .15s, color .15s, border-color .15s;
+}
+.tm-opt:hover, .tm-opt:focus-visible { background: var(--chip); outline: none; }
+.tm-opt[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.tm-opt .tm-label { flex: 1; min-width: 0; }
+.tm-opt .tm-check { width: 18px; height: 18px; stroke-width: 2.4; opacity: 0; }
+.tm-opt[aria-selected="true"] .tm-check { opacity: 1; }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-fg);
   display: grid; place-items: center; font: 600 16px/1 var(--f-park); flex: none; padding-top: 1px;
@@ -309,9 +897,6 @@ input { font: inherit; color: inherit; }
 .circle-btn .ico { font-size: 18px; }
 .circle-btn .i-act { width: 16px; height: 16px; }
 .circle-btn .i-chev { width: 20px; height: 20px; stroke-width: 2.4; }
-.theme-btn .ico { width: 20px; height: 20px; }
-:root[data-theme="dark"] .theme-btn .t-moon, :root:not([data-theme]) .theme-btn .t-moon { display: none; }
-:root[data-theme="light"] .theme-btn .t-sun { display: none; }
 
 /* ---------------------------------- main -------------------------------- */
 #main { grid-column: 2; grid-row: 2; position: relative; min-height: 0; overflow: hidden; background: var(--bg); }
@@ -392,7 +977,7 @@ input { font: inherit; color: inherit; }
 .np-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 40px; }
 .np-top { display: flex; align-items: center; margin: 38px 121px 0 182px; height: 40px; }
 .np-label { flex: 1; text-align: center; font: 700 14px/1.3 var(--f-mono); letter-spacing: 2.8px; color: #c2c2c2; padding-left: 2px; }
-:root[data-theme="light"] .np-label { color: var(--text); }
+:root[data-theme^="light"] .np-label { color: var(--text); }
 .np-actions { display: flex; gap: 10px; }
 .np-body { display: flex; align-items: flex-start; gap: clamp(24px, 14.5%, 127px); margin: 69px 103px 0 211px; }
 .np-art {
@@ -415,8 +1000,8 @@ input { font: inherit; color: inherit; }
 .np-art-img.is-settling {
   transition: transform .8s var(--ease), border-radius .7s var(--ease), box-shadow .7s var(--ease), filter .35s var(--ease);
 }
-/* glow + shine share the cover's exact box and morph with it, so nothing spills outside the shape */
-.np-glow, .np-shine {
+/* glow shares the cover's exact box and morphs with it, so nothing spills outside the shape */
+.np-glow {
   position: absolute;
   top: 0; left: 0;
   width: 100%; aspect-ratio: 1;
@@ -425,7 +1010,7 @@ input { font: inherit; color: inherit; }
   pointer-events: none;
   transition: border-radius .7s var(--ease), clip-path .7s var(--ease), opacity .7s var(--ease);
 }
-.is-playing .np-glow, .is-playing .np-shine {
+.is-playing .np-glow {
   border-radius: 50%;
   clip-path: inset(0 round 50%);
 }
@@ -439,29 +1024,6 @@ input { font: inherit; color: inherit; }
     0 0 90px 12px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .is-playing .np-glow { opacity: 1; clip-path: none; }
-/* non-rotating shine overlay — stays fixed while the disc spins, clipped to the cover shape */
-.np-shine {
-  overflow: hidden;
-  z-index: 3;
-}
-.np-shine::before {
-  content: '';
-  position: absolute;
-  top: -30%; left: -40%;
-  width: 55%; height: 160%;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    transparent 40%,
-    color-mix(in srgb, #fff 55%, var(--accent)) 49%,
-    color-mix(in srgb, var(--accent) 70%, #fff) 51%,
-    transparent 60%,
-    transparent 100%
-  );
-  filter: blur(1px);
-  opacity: 0;
-  transform: translateX(-30%) rotate(18deg);
-}
 /* sonic rings (circular) */
 .np-art::before,
 .np-art::after {
@@ -509,9 +1071,6 @@ input { font: inherit; color: inherit; }
     0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
     inset 0 0 24px color-mix(in srgb, var(--accent) 12%, transparent);
 }
-.is-playing .np-shine::before {
-  animation: np-shimmer 3.4s ease-in-out infinite;
-}
 .is-playing .np-eq {
   display: flex;
 }
@@ -542,13 +1101,39 @@ input { font: inherit; color: inherit; }
 }
 .np-title { margin-top: 14px; font: 400 40px/1.22 var(--f-anta); color: var(--text-strong); overflow-wrap: anywhere; }
 .np-genre { font: 400 24px/28px var(--f-karla); color: var(--accent); }
-.np-seek { margin-top: 44px; height: 15px; }
+/* now-playing progress: a wavy line that fills as the song plays, with a rotating square knob.
+   The real <input type="range"> sits on top, invisible, so dragging / keyboard / screen readers still work. */
+.np-seek { --p: 0; --k: 16px; position: relative; margin-top: 37px; height: 28px; }
+.wave-bar { position: absolute; inset: 0; pointer-events: none; }
+.wb-rest { position: absolute; left: calc(var(--k) / 2 + (100% - var(--k)) * var(--p)); right: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 3px; background: var(--track); }
+.wb-wave {
+  position: absolute; left: 0; top: 50%; height: 12px; margin-top: -6px;
+  width: calc(var(--k) / 2 + (100% - var(--k)) * var(--p));
+  background: var(--accent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 12'%3E%3Cpath d='M-12 6Q-6 14 0 6Q6-2 12 6T24 6T36 6' fill='none' stroke='%23000' stroke-width='3.2'/%3E%3C/svg%3E") repeat-x 0 50% / 24px 12px;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 12'%3E%3Cpath d='M-12 6Q-6 14 0 6Q6-2 12 6T24 6T36 6' fill='none' stroke='%23000' stroke-width='3.2'/%3E%3C/svg%3E") repeat-x 0 50% / 24px 12px;
+}
+.wb-knob {
+  position: absolute; top: 50%; left: calc((100% - var(--k)) * var(--p));
+  width: var(--k); height: var(--k); margin-top: calc(var(--k) / -2);
+  border-radius: 4px; background: var(--accent);
+  border: 3px solid color-mix(in srgb, var(--accent) 38%, #fff);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);
+  animation: wb-spin 3.2s linear infinite; animation-play-state: paused;
+}
+.is-playing .wb-wave { animation: wb-flow 1.2s linear infinite; }
+.is-playing .wb-knob { animation-play-state: running; }
+.np-seek .range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+.np-seek:focus-within .wb-knob { outline: 2px solid var(--accent); outline-offset: 3px; }
+.np-times { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.np-times .time { font-variant-numeric: tabular-nums; }
 .time { font: 400 16px/20px var(--f-anta); color: var(--muted); }
-#npTime { display: block; margin-top: 15px; }
 .np-controls { display: flex; align-items: center; justify-content: center; margin-top: 20px; gap: 0; }
 .np-controls .ctl-skip { margin: 0 0 0 0; }
-.np-extra { display: flex; align-items: center; margin-top: 44px; padding: 0 32px 0 41px; }
-.np-extra .grow { flex: 1; }
+.np-extra { display: flex; align-items: center; gap: 14px; margin: 44px -4px 0; padding: 0; }
+.np-extra .grow { flex: 1; min-width: 0; }
+.np-extra .ext { flex: none; width: 36px; height: 36px; }
+.np-extra .vol { width: 106px; flex: 0 1 106px; min-width: 56px; }
 
 /* transport buttons (shared) */
 .ctl { display: grid; place-items: center; color: var(--ctl); transition: transform .2s var(--ease), opacity .2s; }
@@ -577,9 +1162,6 @@ input { font: inherit; color: inherit; }
 .ext-repeat .ico { width: 25px; height: 25px; }
 .ext[aria-pressed="true"] { color: var(--accent); }
 .ext-timer.active, .ext-speed.active { color: var(--accent); }
-.np-extra .ext-vol { margin-right: 26px; }
-.np-extra .ext-speed { margin-right: 26px; }
-.np-extra .ext-repeat { margin-right: 41px; }
 
 /* sliders (seek + volume) */
 .range {
@@ -597,7 +1179,7 @@ input { font: inherit; color: inherit; }
 .vol { width: 106px; flex: none; }
 
 /* ------------------------------ bottom player --------------------------- */
-:root[data-theme="light"] #player { --track: #e6e7ff; }
+:root[data-theme^="light"] #player { --track: var(--track-player); }
 #player {
   grid-column: 2; grid-row: 3; position: relative; height: 100px; background: var(--bar); border-top: .5px solid var(--bar-line);
   display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; z-index: 5;
@@ -681,7 +1263,7 @@ input { font: inherit; color: inherit; }
   /* keep vinyl spinning on hover — only brighten slightly */
   .np-art-img:hover { filter: brightness(1.06); }
   .is-playing .np-art-img:hover { filter: brightness(1.08); }
-  .theme-btn:hover { transform: scale(1.1) rotate(12deg); }
+  .theme-trigger:hover { transform: translateY(-1px); border-color: var(--accent); }
   .search:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
   .share-btn:hover {
     transform: translateY(-2px);
@@ -707,20 +1289,22 @@ input { font: inherit; color: inherit; }
   animation: play-ring 2.4s ease-out infinite;
 }
 
+/* quick slide-in after swiping to the next / previous song */
+@keyframes np-swipe-next { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes np-swipe-prev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.np-body.swipe-next { animation: np-swipe-next .38s var(--ease); }
+.np-body.swipe-prev { animation: np-swipe-prev .38s var(--ease); }
+@keyframes wb-spin { to { transform: rotate(360deg); } }
+@keyframes wb-flow {
+  from { -webkit-mask-position: -24px 50%; mask-position: -24px 50%; }
+  to   { -webkit-mask-position: 0 50%;     mask-position: 0 50%; }
+}
 @keyframes np-vinyl-spin {
   to { transform: rotate(360deg); }
 }
 @keyframes np-ring {
   0%   { transform: scale(0.92); opacity: .55; }
   100% { transform: scale(1.32); opacity: 0; }
-}
-@keyframes np-shimmer {
-  0%   { transform: translateX(-40%) rotate(18deg); opacity: 0; }
-  8%   { opacity: 0; }
-  18%  { opacity: .95; }
-  42%  { opacity: .7; }
-  55%  { transform: translateX(160%) rotate(18deg); opacity: 0; }
-  100% { transform: translateX(160%) rotate(18deg); opacity: 0; }
 }
 @keyframes np-eq {
   from { transform: scaleY(0.35); }
@@ -901,7 +1485,7 @@ input { font: inherit; color: inherit; }
     transform: translateX(-102%); transition: transform .32s var(--ease), visibility .32s; visibility: hidden;
     padding-bottom: calc(24px + env(safe-area-inset-bottom));
   }
-  :root[data-theme="light"] #sidebar { border-right: 0; }
+  :root[data-theme^="light"] #sidebar { border-right: 0; }
   body.sb-open #sidebar { transform: translateX(0); visibility: visible; }
   #backdrop {
     position: fixed; inset: 0; z-index: 35; display: block; pointer-events: none;
@@ -927,7 +1511,8 @@ input { font: inherit; color: inherit; }
     height: 100%; width: 100%; box-sizing: border-box;
   }
   .search input::placeholder { font-size: inherit; }
-  .theme-btn { margin: 0; }
+  .theme-trigger { margin: 0; padding: 0 10px; gap: 4px; }
+  .theme-trigger .theme-name { display: none; }
   .avatar { display: none; }
 
   #main { grid-column: 1; }
@@ -984,8 +1569,9 @@ input { font: inherit; color: inherit; }
   .np-info { padding-top: 0; min-width: 0; margin-top: 30px; }
   .np-title { margin-top: 10px; font-size: 24px; line-height: 29px; }
   .np-genre { font-size: 16px; line-height: 19px; }
-  .np-seek { margin-top: 26px; }
-  #npTime { margin-top: 5px; font-size: 16px; }
+  .np-seek { margin-top: 20px; }
+  .np-times { margin-top: 0; }
+  .np-times .time { font-size: 16px; }
   .np-controls { margin-top: 20px; }
   .np-controls .ctl-play { width: 50px; height: 50px; }
   .np-controls .ctl-play .ico { width: 20px; height: 20px; }
@@ -997,14 +1583,28 @@ input { font: inherit; color: inherit; }
   .np-controls .ctl-skip:last-child { margin-left: 27px; }
   .np-controls .ctl-seek:nth-child(2) { margin-right: 35px; }
   .np-controls .ctl-seek:nth-child(4) { margin-left: 35px; }
-  .np-extra { margin-top: 40px; padding: 0 20px 0 38px; }
-  .np-extra .ext-vol { margin-right: 8px; }
-  .np-extra .ext-vol .ico { width: 24px; height: 24px; }
-  .np-extra .ext-speed { margin-right: 24px; }
-  .np-extra .ext-repeat { margin-right: 36px; }
+  .np-extra { margin: 36px -3px 0; padding: 0; gap: 8px; max-width: 520px; }
+  .np-extra .ext { width: 34px; height: 34px; }
   .np-extra .ext .ico { width: 20px; height: 20px; }
-  .np-extra { max-width: 520px; }
+  .np-extra .ext-vol .ico { width: 24px; height: 24px; }
+  .np-extra .vol { flex-basis: 96px; width: 96px; }
   .np-info { max-width: 520px; margin-left: auto; margin-right: auto; }
+
+  /* theme picker becomes a bottom sheet with two columns of colour tiles */
+  .theme-scrim { display: block; position: fixed; inset: 0; z-index: 125; background: var(--overlay); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); animation: pop-fade .2s ease; }
+  .theme-pop {
+    top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-width: 560px; margin: 0 auto;
+    border-radius: 24px 24px 0 0; border-bottom: 0; padding: 20px 16px calc(22px + env(safe-area-inset-bottom));
+    max-height: 86dvh; animation: sheet-up .3s var(--ease); box-shadow: 0 -12px 40px rgba(0, 0, 0, .35);
+  }
+  .tm-title { display: block; margin: 0 4px 4px; font: 600 18px/1.2 var(--f-park); }
+  .tm-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tm-group + .tm-group { border-top: 0; padding-top: 0; margin-top: 10px; }
+  .tm-head { margin: 10px 4px 0; }
+  .tm-opt { gap: 10px; padding: 12px; min-height: 50px; border: 1px solid var(--chip-line); background: var(--chip); font-size: 14px; line-height: 1.15; }
+  .tm-opt[aria-selected="true"] { border-color: var(--accent); }
+  .tm-opt .tm-check { display: none; }
+  @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
 
   /* modals become bottom sheets */
   .modal { place-items: end center; padding: 0; }
@@ -1045,7 +1645,6 @@ input { font: inherit; color: inherit; }
     transition-duration: .01ms !important;
   }
   .is-playing .np-art-img,
-  .is-playing .np-shine::before,
   .is-playing .np-art::before,
   .is-playing .np-art::after,
   .is-playing .np-eq span,

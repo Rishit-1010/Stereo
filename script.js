@@ -84,19 +84,104 @@
   }
 
   /* ------------------------------- theme ---------------------------------- */
-  function applyTheme(t) {
-    document.documentElement.setAttribute('data-theme', t);
+  /* ten themes: the original Dark (lime) + Light (navy), and four extra dark / four extra light colours.
+     Their colours live in style.css; the logo + cover images of the extra ones are in the themes/ folder. */
+  const DARK_FILES = ['Logo.png', 'Cover.png', 'CoverBig.png'];
+  const THEMES = [
+    { id: 'dark',         label: 'Dark (Lime)',     mode: 'dark',  accent: '#abff00', files: DARK_FILES },
+    { id: 'dark-red',     label: 'Dark (Red)',      mode: 'dark',  accent: '#ff3434' },
+    { id: 'dark-yellow',  label: 'Dark (Yellow)',   mode: 'dark',  accent: '#f4ff00' },
+    { id: 'dark-blue',    label: 'Dark (Blue)',     mode: 'dark',  accent: '#3cc4ff' },
+    { id: 'dark-violet',  label: 'Dark (Violet)',   mode: 'dark',  accent: '#b78cff' },
+    { id: 'light',        label: 'Light (Navy)',    mode: 'light', accent: '#000455', files: ['Logo1.png', 'Cover2.png', 'CoverBig1.png'] },
+    { id: 'light-maroon', label: 'Light (Maroon)',  mode: 'light', accent: '#7a0a1e' },
+    { id: 'light-green',  label: 'Light (Green)',   mode: 'light', accent: '#0a5c34' },
+    { id: 'light-yellow', label: 'Light (Yellow)',  mode: 'light', accent: '#8f6500' },
+    { id: 'light-purple', label: 'Light (Purple)',  mode: 'light', accent: '#4a1790' }
+  ];
+  THEMES.forEach(t => { if (!t.files) t.files = DARK_FILES.map(f => 'themes/' + t.id + '/' + f); });
+  const THEME_BY_ID = new Map(THEMES.map(t => [t.id, t]));
+  const themeBg = t => (t.mode === 'light' ? '#ffffff' : '#000000');
+  const curTheme = () => THEME_BY_ID.get(document.documentElement.getAttribute('data-theme')) || THEMES[0];
+
+  /* start loading a theme's images the moment it is picked (or hovered), kept on window so they stay decoded */
+  const themePre = new Map();
+  function preloadTheme(t) {
+    if (themePre.has(t.id)) return;
+    themePre.set(t.id, t.files.map(f => { const img = new Image(); img.decoding = 'async'; img.src = REPO_RAW + f; return img; }));
+  }
+
+  const themeBtn = $('#themeBtn'), themePop = $('#themeList'), themeScrim = $('#themeScrim');
+  const phoneLayout = () => window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
+
+  function buildThemeMenu() {
+    const group = (name, mode) =>
+      `<div class="tm-group" role="group" aria-label="${name} themes"><p class="tm-head">${name.toUpperCase()}</p>` +
+      THEMES.filter(t => t.mode === mode).map(t =>
+        `<button type="button" class="tm-opt" role="option" aria-selected="false" data-theme-id="${t.id}">` +
+        `<span class="sw" style="--sw-bg:${themeBg(t)};--sw-ac:${t.accent}"></span>` +
+        `<span class="tm-label">${esc(t.label)}</span><svg class="ico tm-check" aria-hidden="true"><use href="#i-check"/></svg></button>`
+      ).join('') + '</div>';
+    themePop.innerHTML = '<p class="tm-title">Choose a theme</p>' + group('Dark', 'dark') + group('Light', 'light');
+  }
+  buildThemeMenu();
+
+  function applyTheme(id) {
+    const t = THEME_BY_ID.get(id) || THEMES[0];
+    document.documentElement.setAttribute('data-theme', t.id);
     const m = $('meta[name="theme-color"]');
-    if (m) m.setAttribute('content', t === 'light' ? '#ffffff' : '#000000');
-    const btn = $('#themeBtn');
-    btn.setAttribute('aria-label', t === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
-    btn.title = t === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
+    if (m) m.setAttribute('content', themeBg(t));
+    preloadTheme(t);
+    /* trigger button shows the current theme */
+    $('#themeSw').style.cssText = `--sw-bg:${themeBg(t)};--sw-ac:${t.accent}`;
+    $('#themeName').textContent = t.label;
+    themeBtn.title = 'Theme: ' + t.label;
+    themeBtn.setAttribute('aria-label', 'Choose theme. Current theme: ' + t.label);
+    $$('.tm-opt', themePop).forEach(o => o.setAttribute('aria-selected', String(o.dataset.themeId === t.id)));
     updateMediaSession();
   }
-  $('#themeBtn').addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    applyTheme(next); store.set('theme', next);
+
+  function placeThemePop() {
+    if (phoneLayout()) { themePop.style.top = themePop.style.right = ''; return; } /* bottom sheet: CSS places it */
+    const r = themeBtn.getBoundingClientRect();
+    themePop.style.top = Math.round(r.bottom + 8) + 'px';
+    themePop.style.right = Math.max(8, Math.round(window.innerWidth - r.right)) + 'px';
+  }
+  function setThemeMenu(open) {
+    if (open === !themePop.hidden) return;
+    themePop.hidden = !open;
+    themeScrim.hidden = !open;
+    themeBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      placeThemePop();
+      const sel = themePop.querySelector('.tm-opt[aria-selected="true"]') || themePop.querySelector('.tm-opt');
+      if (sel) sel.focus({ preventScroll: true });
+    }
+  }
+  themeBtn.addEventListener('click', () => setThemeMenu(themePop.hidden));
+  themePop.addEventListener('click', e => {
+    const b = e.target.closest('.tm-opt'); if (!b) return;
+    applyTheme(b.dataset.themeId); store.set('theme', b.dataset.themeId);
+    setThemeMenu(false); themeBtn.focus({ preventScroll: true });
   });
+  const warmTheme = e => { const b = e.target.closest && e.target.closest('.tm-opt'); if (b) preloadTheme(THEME_BY_ID.get(b.dataset.themeId)); };
+  themePop.addEventListener('pointerover', warmTheme);
+  themePop.addEventListener('focusin', warmTheme);
+  document.addEventListener('pointerdown', e => {
+    if (!themePop.hidden && !themePop.contains(e.target) && !themeBtn.contains(e.target)) setThemeMenu(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (themePop.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); setThemeMenu(false); themeBtn.focus({ preventScroll: true }); return; }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const opts = $$('.tm-opt', themePop); if (!opts.length) return;
+      e.preventDefault();
+      const i = opts.indexOf(document.activeElement);
+      const next = e.key === 'ArrowDown' ? (i + 1) % opts.length : (i <= 0 ? opts.length - 1 : i - 1);
+      opts[next].focus();
+    }
+  });
+  window.addEventListener('resize', () => { if (!themePop.hidden) placeThemePop(); });
 
   /* ------------------------------ list view ------------------------------- */
   function visibleSongs() {
@@ -380,6 +465,36 @@
   }
   function prev() { if (audio.currentTime > 3) audio.currentTime = 0; else step(-1); }
   function next() { step(1); }
+
+  /* phones / tablets: swipe left on Now Playing = next song, swipe right = previous song */
+  function swipeSong(dir) {
+    step(dir);
+    const body = $('#npView .np-body');
+    if (!body) return;
+    body.classList.remove('swipe-next', 'swipe-prev');
+    void body.offsetWidth; /* restart the animation if swiped twice quickly */
+    body.classList.add(dir > 0 ? 'swipe-next' : 'swipe-prev');
+    body.addEventListener('animationend', () => body.classList.remove('swipe-next', 'swipe-prev'), { once: true });
+  }
+  (function () {
+    const npEl = $('#npView');
+    let sx = 0, sy = 0, st = 0, track = false;
+    npEl.addEventListener('touchstart', e => {
+      track = false;
+      if (!PHONE.matches || e.touches.length !== 1) return;
+      if (e.target.closest('input, button, .np-top')) return; /* sliders and buttons keep their own touch behaviour */
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); track = true;
+    }, { passive: true });
+    npEl.addEventListener('touchend', e => {
+      if (!track) return;
+      track = false;
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      /* a quick, mostly-horizontal flick of at least 60px */
+      if (Date.now() - st > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      swipeSong(dx < 0 ? 1 : -1);
+    }, { passive: true });
+    npEl.addEventListener('touchcancel', () => { track = false; }, { passive: true });
+  })();
   function skip(sec) {
     const d = audio.duration;
     let t = audio.currentTime + sec;
@@ -483,7 +598,11 @@
   const vols = $$('[data-vol]');
   const dragging = new WeakSet();
 
-  function setRange(el, frac) { el.style.setProperty('--p', String(frac)); }
+  function setRange(el, frac) {
+    el.style.setProperty('--p', String(frac));
+    const wrap = el.closest('.np-seek'); /* the wavy Now Playing bar reads --p from its wrapper */
+    if (wrap) wrap.style.setProperty('--p', String(frac));
+  }
 
   function updateProgress() {
     const d = audio.duration, t = audio.currentTime;
@@ -496,6 +615,7 @@
     });
     const tx = fmt(t);
     $('#plTime').textContent = tx; $('#npTime').textContent = tx;
+    $('#npDur').textContent = fmt(ok ? d : 0); /* total length, shown at the end of the bar */
     $$('#plTime, #npTime').forEach(el => el.title = ok ? `${tx} / ${fmt(d)}` : tx);
     if (ok) updatePosition();
   }
@@ -641,8 +761,7 @@
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
     const s = libMap.get(S.cur); if (!s) return;
-    const light = document.documentElement.getAttribute('data-theme') === 'light';
-    const cover = absUrl(REPO_RAW + (light ? 'CoverBig1.png' : 'CoverBig.png'));
+    const cover = absUrl(REPO_RAW + curTheme().files[2]); /* this theme's big cover */
     const icon = absUrl('icon-512.png');
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -1201,7 +1320,7 @@
   syncInstallBtn();
 
   /* ----------------------------- share Stereo ----------------------------- */
-  const SHARE_URL = 'https://github.com/Rishit-1010/Stereo';
+  const SHARE_URL = 'https://rishit-1010.github.io/Stereo';
   const SHARE_TEXT = "Check out Rishit's Stereo — a personal music player.";
   async function shareStereo() {
     closeSidebar();

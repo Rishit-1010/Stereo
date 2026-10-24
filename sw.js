@@ -4,7 +4,7 @@
    - songs (audio) are never touched: they stream straight from GitHub */
 'use strict';
 
-const CACHE = 'stereo-v2';
+const CACHE = 'stereo-v3';
 const SHELL = [
   './', './index.html', './style.css', './script.js', './songs.js', './manifest.webmanifest',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'
