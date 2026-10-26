@@ -89,20 +89,22 @@
   }
 
   /* ------------------------------- theme ---------------------------------- */
-  /* ten themes: the original Dark (lime) + Light (navy), and four extra dark / four extra light colours.
+  /* twelve themes: the original Dark (lime) + Light (navy), plus five extra dark and five extra light colours.
      Their colours live in style.css; the logo + cover images of the extra ones are in the themes/ folder. */
   const DARK_FILES = ['Logo.png', 'Cover.png', 'CoverBig.png'];
   const THEMES = [
     { id: 'dark',         label: 'Dark (Lime)',     mode: 'dark',  accent: '#abff00', files: DARK_FILES },
-    { id: 'dark-red',     label: 'Dark (Red)',      mode: 'dark',  accent: '#ff3434' },
+    { id: 'dark-red',     label: 'Dark (Red)',      mode: 'dark',  accent: '#ff5252' },
     { id: 'dark-yellow',  label: 'Dark (Yellow)',   mode: 'dark',  accent: '#f4ff00' },
-    { id: 'dark-blue',    label: 'Dark (Blue)',     mode: 'dark',  accent: '#3cc4ff' },
-    { id: 'dark-violet',  label: 'Dark (Violet)',   mode: 'dark',  accent: '#b78cff' },
+    { id: 'dark-blue',    label: 'Dark (Blue)',     mode: 'dark',  accent: '#5ccfff' },
+    { id: 'dark-violet',  label: 'Dark (Violet)',   mode: 'dark',  accent: '#c8a2ff' },
+    { id: 'dark-white',   label: 'Dark (White)',    mode: 'dark',  accent: '#ffffff' },
     { id: 'light',        label: 'Light (Navy)',    mode: 'light', accent: '#000455', files: ['Logo1.png', 'Cover2.png', 'CoverBig1.png'] },
-    { id: 'light-maroon', label: 'Light (Maroon)',  mode: 'light', accent: '#7a0a1e' },
-    { id: 'light-green',  label: 'Light (Green)',   mode: 'light', accent: '#0a5c34' },
-    { id: 'light-yellow', label: 'Light (Yellow)',  mode: 'light', accent: '#8f6500' },
-    { id: 'light-purple', label: 'Light (Purple)',  mode: 'light', accent: '#4a1790' }
+    { id: 'light-maroon', label: 'Light (Maroon)',  mode: 'light', accent: '#620817' },
+    { id: 'light-green',  label: 'Light (Green)',   mode: 'light', accent: '#07482b' },
+    { id: 'light-yellow', label: 'Light (Yellow)',  mode: 'light', accent: '#6e4c00' },
+    { id: 'light-purple', label: 'Light (Purple)',  mode: 'light', accent: '#3b1074' },
+    { id: 'light-black',  label: 'Light (Black)',   mode: 'light', accent: '#000000' }
   ];
   THEMES.forEach(t => { if (!t.files) t.files = DARK_FILES.map(f => 'themes/' + t.id + '/' + f); });
   const THEME_BY_ID = new Map(THEMES.map(t => [t.id, t]));
@@ -221,10 +223,9 @@
       (canDrag ? `<span class="grip" aria-hidden="true" title="Drag to reorder"><svg class="ico"><use href="#i-grip"/></svg></span>` : '') +
       `<span class="num">${pad2(i + 1)}</span>` +
       `<span class="thumb" aria-hidden="true"></span>` +
-      `<span class="title">${esc(s.title)}</span>` +
-      `<span class="genre">${esc(s.genre)}</span>` +
-      (durStr ? `<span class="dur">${durStr}</span>` : '') +
-      (isOffline ? `<span class="offline-tag" title="Saved for offline"><svg class="ico"><use href="#i-cloud-check"/></svg></span>` : '') +
+      `<span class="meta"><span class="title">${esc(s.title)}</span><span class="genre">${esc(s.genre)}</span></span>` +
+      `<span class="dur">${durStr}</span>` +
+      `<span class="offline-tag${isOffline ? '' : ' empty'}"${isOffline ? ' title="Saved for offline"' : ' aria-hidden="true"'}>${isOffline ? '<svg class="ico"><use href="#i-cloud-check"/></svg>' : ''}</span>` +
       `<button class="like${on ? ' on' : ''}" type="button" data-like="${s.id}" aria-label="${on ? 'Unlike' : 'Like'}" aria-pressed="${on}"><svg class="ico"><use href="#i-heart"/></svg></button>` +
       `<button class="rplay" type="button" data-play="${s.id}" aria-label="Play / pause"><svg class="ico fill i-pl"><use href="#i-play"/></svg><svg class="ico fill i-pa"><use href="#i-pause"/></svg></button>` +
       `</li>`;
@@ -534,22 +535,53 @@
   }
   (function () {
     const npEl = $('#npView');
-    let sx = 0, sy = 0, st = 0, track = false;
+    const scroller = npEl.querySelector('.np-scroll');
+    let sx = 0, sy = 0, st = 0, track = false, mode = '', closing = false;
+    const reset = () => { npEl.style.transition = ''; npEl.style.transform = ''; npEl.style.opacity = ''; };
     npEl.addEventListener('touchstart', e => {
-      track = false;
-      if (!PHONE.matches || e.touches.length !== 1) return;
-      if (e.target.closest('input, button, .np-top')) return; /* sliders and buttons keep their own touch behaviour */
+      track = false; mode = '';
+      if (closing || !PHONE.matches || e.touches.length !== 1) return;
+      if (e.target.closest('input, button')) return; /* sliders and buttons keep their own touch behaviour */
       sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); track = true;
     }, { passive: true });
+    npEl.addEventListener('touchmove', e => {
+      if (!track) return;
+      const t = e.touches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (!mode) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        mode = (dy > 0 && dy > Math.abs(dx) * 1.2 && (!scroller || scroller.scrollTop <= 0)) ? 'down' : 'other';
+      }
+      if (mode !== 'down') return;
+      if (e.cancelable) e.preventDefault();
+      const y = Math.max(0, dy);
+      npEl.style.transition = 'none';
+      npEl.style.transform = `translateY(${y}px)`;
+      npEl.style.opacity = String(Math.max(.35, 1 - y / 520));
+    }, { passive: false });
     npEl.addEventListener('touchend', e => {
       if (!track) return;
       track = false;
-      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy, dt = Date.now() - st;
+      if (mode === 'down') {
+        mode = '';
+        if (dy > 110 || (dy > 50 && dy / Math.max(dt, 1) > 0.5)) {
+          closing = true;
+          npEl.style.transition = 'transform .26s cubic-bezier(.4,0,.2,1), opacity .26s';
+          npEl.style.transform = 'translateY(100%)';
+          npEl.style.opacity = '0';
+          setTimeout(() => { $('#npBack').click(); setTimeout(() => { reset(); closing = false; }, 60); }, 250);
+        } else {
+          npEl.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1), opacity .25s';
+          npEl.style.transform = ''; npEl.style.opacity = '';
+          setTimeout(reset, 270);
+        }
+        return;
+      }
       /* a quick, mostly-horizontal flick of at least 60px */
-      if (Date.now() - st > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (dt > 800 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
       swipeSong(dx < 0 ? 1 : -1);
     }, { passive: true });
-    npEl.addEventListener('touchcancel', () => { track = false; }, { passive: true });
+    npEl.addEventListener('touchcancel', () => { track = false; if (mode === 'down') { mode = ''; reset(); } }, { passive: true });
   })();
   function skip(sec) {
     const d = audio.duration;

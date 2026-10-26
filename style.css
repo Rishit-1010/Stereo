@@ -162,7 +162,7 @@
   --bg: #000000;
   --bg-np: #000000;
   --side: #080000;
-  --accent: #ff3434;
+  --accent: #ff5252;
   --on-accent: #000000;
   --text: #ededed;
   --text-strong: #ffffff;
@@ -173,38 +173,38 @@
   --coll-title: #ededed;
   --item: #0f0f0f;
   --item-active: #2e0000;
-  --item-active-line: #ff3434;
-  --item-active-text: #ff3434;
+  --item-active-line: #ff5252;
+  --item-active-text: #ff5252;
   --row: #0a0000;
   --row-playing: #120000;
   --row-line: transparent;
-  --row-playing-line: #ff3434;
+  --row-playing-line: #ff5252;
   --row-title: #ffffff;
-  --row-title-playing: #ff3434;
+  --row-title-playing: #ff5252;
   --pb-bg: #260000;
-  --pb-fg: #ff3434;
-  --pbp-bg: #ff3434;
+  --pb-fg: #ff5252;
+  --pbp-bg: #ff5252;
   --pbp-fg: #000000;
   --bar: #1a0000;
-  --bar-line: #ff3434;
+  --bar-line: #ff5252;
   --track: #2e2e2e;
   --circle-fill: #050505;
-  --circle-line: rgba(255, 52, 52, .6);
-  --circle-fg: #ff3434;
+  --circle-line: rgba(255, 82, 82, .6);
+  --circle-fg: #ff5252;
   --search-bg: #000000;
   --search-line: #ededed;
   --search-text: #ededed;
-  --head-line: #ff3434;
-  --avatar-bg: #ff3434;
+  --head-line: #ff5252;
+  --avatar-bg: #ff5252;
   --avatar-fg: #000000;
-  --ctl: #ff3434;
+  --ctl: #ff5252;
   --ext: #bfbfbf;
-  --play-big-bg: #ff3434;
+  --play-big-bg: #ff5252;
   --play-big-fg: #000000;
   --scroll: #3a0000;
   --overlay: rgba(0, 0, 0, .62);
   --sheet: #0d0404;
-  --sheet-line: rgba(255, 52, 52, .16);
+  --sheet-line: rgba(255, 82, 82, .16);
   --chip: #160a0a;
   --chip-line: #2a1010;
   --input: #160a0a;
@@ -219,7 +219,7 @@
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-red/CoverBig.png');
   --toast-bg: #1a0000;
   --toast-fg: #ededed;
-  --heart-on: #ff3434;
+  --heart-on: #ff5252;
 }
 
 /* ---------- DARK (YELLOW) ---------- */
@@ -294,7 +294,7 @@
   --bg: #000000;
   --bg-np: #000000;
   --side: #000608;
-  --accent: #3cc4ff;
+  --accent: #5ccfff;
   --on-accent: #000000;
   --text: #ededed;
   --text-strong: #ffffff;
@@ -305,38 +305,38 @@
   --coll-title: #ededed;
   --item: #0f0f0f;
   --item-active: #00202e;
-  --item-active-line: #3cc4ff;
-  --item-active-text: #3cc4ff;
+  --item-active-line: #5ccfff;
+  --item-active-text: #5ccfff;
   --row: #00070a;
   --row-playing: #000d12;
   --row-line: transparent;
-  --row-playing-line: #3cc4ff;
+  --row-playing-line: #5ccfff;
   --row-title: #ffffff;
-  --row-title-playing: #3cc4ff;
+  --row-title-playing: #5ccfff;
   --pb-bg: #001b26;
-  --pb-fg: #3cc4ff;
-  --pbp-bg: #3cc4ff;
+  --pb-fg: #5ccfff;
+  --pbp-bg: #5ccfff;
   --pbp-fg: #000000;
   --bar: #00121a;
-  --bar-line: #3cc4ff;
+  --bar-line: #5ccfff;
   --track: #2e2e2e;
   --circle-fill: #050505;
-  --circle-line: rgba(60, 196, 255, .6);
-  --circle-fg: #3cc4ff;
+  --circle-line: rgba(92, 207, 255, .6);
+  --circle-fg: #5ccfff;
   --search-bg: #000000;
   --search-line: #ededed;
   --search-text: #ededed;
-  --head-line: #3cc4ff;
-  --avatar-bg: #3cc4ff;
+  --head-line: #5ccfff;
+  --avatar-bg: #5ccfff;
   --avatar-fg: #000000;
-  --ctl: #3cc4ff;
+  --ctl: #5ccfff;
   --ext: #bfbfbf;
-  --play-big-bg: #3cc4ff;
+  --play-big-bg: #5ccfff;
   --play-big-fg: #000000;
-  --scroll: #00283a;
+  --scroll: #00293a;
   --overlay: rgba(0, 0, 0, .62);
   --sheet: #040a0d;
-  --sheet-line: rgba(60, 196, 255, .16);
+  --sheet-line: rgba(92, 207, 255, .16);
   --chip: #0a1216;
   --chip-line: #10222a;
   --input: #0a1216;
@@ -351,7 +351,7 @@
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-blue/CoverBig.png');
   --toast-bg: #00121a;
   --toast-fg: #ededed;
-  --heart-on: #3cc4ff;
+  --heart-on: #5ccfff;
 }
 
 /* ---------- DARK (VIOLET) ---------- */
@@ -360,7 +360,7 @@
   --bg: #000000;
   --bg-np: #000000;
   --side: #030008;
-  --accent: #b78cff;
+  --accent: #c8a2ff;
   --on-accent: #000000;
   --text: #ededed;
   --text-strong: #ffffff;
@@ -370,54 +370,120 @@
   --coll-label: #c2c2c2;
   --coll-title: #ededed;
   --item: #0f0f0f;
-  --item-active: #11002e;
-  --item-active-line: #b78cff;
-  --item-active-text: #b78cff;
+  --item-active: #13002e;
+  --item-active-line: #c8a2ff;
+  --item-active-text: #c8a2ff;
   --row: #04000a;
   --row-playing: #070012;
   --row-line: transparent;
-  --row-playing-line: #b78cff;
+  --row-playing-line: #c8a2ff;
   --row-title: #ffffff;
-  --row-title-playing: #b78cff;
-  --pb-bg: #0e0026;
-  --pb-fg: #b78cff;
-  --pbp-bg: #b78cff;
+  --row-title-playing: #c8a2ff;
+  --pb-bg: #100026;
+  --pb-fg: #c8a2ff;
+  --pbp-bg: #c8a2ff;
   --pbp-fg: #000000;
-  --bar: #0a001a;
-  --bar-line: #b78cff;
+  --bar: #0b001a;
+  --bar-line: #c8a2ff;
   --track: #2e2e2e;
   --circle-fill: #050505;
-  --circle-line: rgba(183, 140, 255, .6);
-  --circle-fg: #b78cff;
+  --circle-line: rgba(200, 162, 255, .6);
+  --circle-fg: #c8a2ff;
   --search-bg: #000000;
   --search-line: #ededed;
   --search-text: #ededed;
-  --head-line: #b78cff;
-  --avatar-bg: #b78cff;
+  --head-line: #c8a2ff;
+  --avatar-bg: #c8a2ff;
   --avatar-fg: #000000;
-  --ctl: #b78cff;
+  --ctl: #c8a2ff;
   --ext: #bfbfbf;
-  --play-big-bg: #b78cff;
+  --play-big-bg: #c8a2ff;
   --play-big-fg: #000000;
-  --scroll: #16003a;
+  --scroll: #18003a;
   --overlay: rgba(0, 0, 0, .62);
-  --sheet: #07040d;
-  --sheet-line: rgba(183, 140, 255, .16);
-  --chip: #0e0a16;
-  --chip-line: #1a102a;
-  --input: #0e0a16;
-  --input-line: #211830;
+  --sheet: #08040d;
+  --sheet-line: rgba(200, 162, 255, .16);
+  --chip: #0f0a16;
+  --chip-line: #1b102a;
+  --input: #0f0a16;
+  --input-line: #221830;
   --input-ph: #494057;
   --sheet-text: #ffffff;
   --sheet-eyebrow: #9a9a9a;
   --sheet-muted: #bfbfbf;
-  --rule: #110820;
+  --rule: #120820;
   --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/Logo.png');
   --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/Cover.png');
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-violet/CoverBig.png');
-  --toast-bg: #0a001a;
+  --toast-bg: #0b001a;
   --toast-fg: #ededed;
-  --heart-on: #b78cff;
+  --heart-on: #c8a2ff;
+}
+
+/* ---------- DARK (WHITE) ---------- */
+:root[data-theme="dark-white"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --bg-np: #000000;
+  --side: #040404;
+  --accent: #ffffff;
+  --on-accent: #000000;
+  --text: #ededed;
+  --text-strong: #ffffff;
+  --muted: #bfbfbf;
+  --label: #c4c4c4;
+  --label-2: #9a9a9a;
+  --coll-label: #c2c2c2;
+  --coll-title: #ededed;
+  --item: #0f0f0f;
+  --item-active: #171717;
+  --item-active-line: #ffffff;
+  --item-active-text: #ffffff;
+  --row: #050505;
+  --row-playing: #090909;
+  --row-line: transparent;
+  --row-playing-line: #ffffff;
+  --row-title: #ffffff;
+  --row-title-playing: #ffffff;
+  --pb-bg: #131313;
+  --pb-fg: #ffffff;
+  --pbp-bg: #ffffff;
+  --pbp-fg: #000000;
+  --bar: #0d0d0d;
+  --bar-line: #ffffff;
+  --track: #2e2e2e;
+  --circle-fill: #050505;
+  --circle-line: rgba(255, 255, 255, .6);
+  --circle-fg: #ffffff;
+  --search-bg: #000000;
+  --search-line: #ededed;
+  --search-text: #ededed;
+  --head-line: #ffffff;
+  --avatar-bg: #ffffff;
+  --avatar-fg: #000000;
+  --ctl: #ffffff;
+  --ext: #bfbfbf;
+  --play-big-bg: #ffffff;
+  --play-big-fg: #000000;
+  --scroll: #1d1d1d;
+  --overlay: rgba(0, 0, 0, .62);
+  --sheet: #080808;
+  --sheet-line: rgba(255, 255, 255, .16);
+  --chip: #101010;
+  --chip-line: #1d1d1d;
+  --input: #101010;
+  --input-line: #242424;
+  --input-ph: #4c4c4c;
+  --sheet-text: #ffffff;
+  --sheet-eyebrow: #9a9a9a;
+  --sheet-muted: #bfbfbf;
+  --rule: #141414;
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-white/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-white/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/dark-white/CoverBig.png');
+  --toast-bg: #0d0d0d;
+  --toast-fg: #ededed;
+  --heart-on: #ffffff;
 }
 
 /* ---------- LIGHT (MAROON) ---------- */
@@ -426,64 +492,64 @@
   --bg: #ffffff;
   --bg-np: #fdeff1;
   --side: #fdeff1;
-  --accent: #7a0a1e;
+  --accent: #620817;
   --on-accent: #ffffff;
-  --text: #7a0a1e;
-  --text-strong: #7a0a1e;
-  --muted: #7a0a1e;
-  --label: #7a0a1e;
-  --label-2: #7a0a1e;
-  --coll-label: #7a0a1e;
-  --coll-title: #7a0a1e;
+  --text: #620817;
+  --text-strong: #620817;
+  --muted: #620817;
+  --label: #620817;
+  --label-2: #620817;
+  --coll-label: #620817;
+  --coll-title: #620817;
   --item: #fce1e6;
-  --item-active: #f8c0ca;
-  --item-active-line: #7a0a1e;
-  --item-active-text: #7a0a1e;
+  --item-active: #f8c0c9;
+  --item-active-line: #620817;
+  --item-active-text: #620817;
   --row: #fad1d8;
-  --row-playing: #f8c0ca;
+  --row-playing: #f8c0c9;
   --row-line: transparent;
-  --row-playing-line: #7a0a1e;
-  --row-title: #7a0a1e;
-  --row-title-playing: #7a0a1e;
+  --row-playing-line: #620817;
+  --row-title: #620817;
+  --row-title-playing: #620817;
   --pb-bg: #f9cbd3;
-  --pb-fg: #7a0a1e;
-  --pbp-bg: #7a0a1e;
+  --pb-fg: #620817;
+  --pbp-bg: #620817;
   --pbp-fg: #ffffff;
-  --bar: #f6b1bd;
-  --bar-line: #7a0a1e;
-  --track: #f6b1bd;
+  --bar: #f6b1bc;
+  --bar-line: #620817;
+  --track: #f6b1bc;
   --circle-fill: #ffffff;
-  --circle-line: #7a0a1e;
-  --circle-fg: #7a0a1e;
+  --circle-line: #620817;
+  --circle-fg: #620817;
   --search-bg: #ffffff;
-  --search-line: #7a0a1e;
-  --search-text: #7a0a1e;
-  --head-line: #7a0a1e;
-  --avatar-bg: #7a0a1e;
+  --search-line: #620817;
+  --search-text: #620817;
+  --head-line: #620817;
+  --avatar-bg: #620817;
   --avatar-fg: #ffffff;
-  --ctl: #7a0a1e;
-  --ext: #7a0a1e;
-  --play-big-bg: #7a0a1e;
+  --ctl: #620817;
+  --ext: #620817;
+  --play-big-bg: #620817;
   --play-big-fg: #ffffff;
-  --scroll: #f6b1bd;
-  --overlay: rgba(122, 10, 30, .38);
+  --scroll: #f6b1bc;
+  --overlay: rgba(98, 8, 23, .38);
   --sheet: #fdeff1;
-  --sheet-line: rgba(122, 10, 30, .22);
+  --sheet-line: rgba(98, 8, 23, .22);
   --chip: #fce1e6;
-  --chip-line: rgba(122, 10, 30, .22);
+  --chip-line: rgba(98, 8, 23, .22);
   --input: #fce1e6;
-  --input-line: rgba(122, 10, 30, .28);
-  --input-ph: rgba(122, 10, 30, .4);
-  --sheet-text: #7a0a1e;
-  --sheet-eyebrow: #7a0a1e;
-  --sheet-muted: #7a0a1e;
-  --rule: rgba(122, 10, 30, .16);
+  --input-line: rgba(98, 8, 23, .28);
+  --input-ph: rgba(98, 8, 23, .4);
+  --sheet-text: #620817;
+  --sheet-eyebrow: #620817;
+  --sheet-muted: #620817;
+  --rule: rgba(98, 8, 23, .16);
   --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/Logo.png');
   --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/Cover.png');
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-maroon/CoverBig.png');
-  --toast-bg: #7a0a1e;
+  --toast-bg: #620817;
   --toast-fg: #ffffff;
-  --heart-on: #7a0a1e;
+  --heart-on: #620817;
   --track-player: #fce8ec;
 }
 
@@ -491,67 +557,67 @@
 :root[data-theme="light-green"] {
   color-scheme: light;
   --bg: #ffffff;
-  --bg-np: #effdf6;
-  --side: #effdf6;
-  --accent: #0a5c34;
+  --bg-np: #effdf7;
+  --side: #effdf7;
+  --accent: #07482b;
   --on-accent: #ffffff;
-  --text: #0a5c34;
-  --text-strong: #0a5c34;
-  --muted: #0a5c34;
-  --label: #0a5c34;
-  --label-2: #0a5c34;
-  --coll-label: #0a5c34;
-  --coll-title: #0a5c34;
-  --item: #e1fcef;
-  --item-active: #c0f8dd;
-  --item-active-line: #0a5c34;
-  --item-active-text: #0a5c34;
-  --row: #d1fae6;
-  --row-playing: #c0f8dd;
+  --text: #07482b;
+  --text-strong: #07482b;
+  --muted: #07482b;
+  --label: #07482b;
+  --label-2: #07482b;
+  --coll-label: #07482b;
+  --coll-title: #07482b;
+  --item: #e1fcf0;
+  --item-active: #c0f8df;
+  --item-active-line: #07482b;
+  --item-active-text: #07482b;
+  --row: #d1fae8;
+  --row-playing: #c0f8df;
   --row-line: transparent;
-  --row-playing-line: #0a5c34;
-  --row-title: #0a5c34;
-  --row-title-playing: #0a5c34;
-  --pb-bg: #cbf9e3;
-  --pb-fg: #0a5c34;
-  --pbp-bg: #0a5c34;
+  --row-playing-line: #07482b;
+  --row-title: #07482b;
+  --row-title-playing: #07482b;
+  --pb-bg: #cbf9e4;
+  --pb-fg: #07482b;
+  --pbp-bg: #07482b;
   --pbp-fg: #ffffff;
-  --bar: #b1f6d4;
-  --bar-line: #0a5c34;
-  --track: #b1f6d4;
+  --bar: #b1f6d7;
+  --bar-line: #07482b;
+  --track: #b1f6d7;
   --circle-fill: #ffffff;
-  --circle-line: #0a5c34;
-  --circle-fg: #0a5c34;
+  --circle-line: #07482b;
+  --circle-fg: #07482b;
   --search-bg: #ffffff;
-  --search-line: #0a5c34;
-  --search-text: #0a5c34;
-  --head-line: #0a5c34;
-  --avatar-bg: #0a5c34;
+  --search-line: #07482b;
+  --search-text: #07482b;
+  --head-line: #07482b;
+  --avatar-bg: #07482b;
   --avatar-fg: #ffffff;
-  --ctl: #0a5c34;
-  --ext: #0a5c34;
-  --play-big-bg: #0a5c34;
+  --ctl: #07482b;
+  --ext: #07482b;
+  --play-big-bg: #07482b;
   --play-big-fg: #ffffff;
-  --scroll: #b1f6d4;
-  --overlay: rgba(10, 92, 52, .38);
-  --sheet: #effdf6;
-  --sheet-line: rgba(10, 92, 52, .22);
-  --chip: #e1fcef;
-  --chip-line: rgba(10, 92, 52, .22);
-  --input: #e1fcef;
-  --input-line: rgba(10, 92, 52, .28);
-  --input-ph: rgba(10, 92, 52, .4);
-  --sheet-text: #0a5c34;
-  --sheet-eyebrow: #0a5c34;
-  --sheet-muted: #0a5c34;
-  --rule: rgba(10, 92, 52, .16);
+  --scroll: #b1f6d7;
+  --overlay: rgba(7, 72, 43, .38);
+  --sheet: #effdf7;
+  --sheet-line: rgba(7, 72, 43, .22);
+  --chip: #e1fcf0;
+  --chip-line: rgba(7, 72, 43, .22);
+  --input: #e1fcf0;
+  --input-line: rgba(7, 72, 43, .28);
+  --input-ph: rgba(7, 72, 43, .4);
+  --sheet-text: #07482b;
+  --sheet-eyebrow: #07482b;
+  --sheet-muted: #07482b;
+  --rule: rgba(7, 72, 43, .16);
   --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/Logo.png');
   --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/Cover.png');
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-green/CoverBig.png');
-  --toast-bg: #0a5c34;
+  --toast-bg: #07482b;
   --toast-fg: #ffffff;
-  --heart-on: #0a5c34;
-  --track-player: #e8fcf3;
+  --heart-on: #07482b;
+  --track-player: #e8fcf4;
 }
 
 /* ---------- LIGHT (YELLOW) ---------- */
@@ -560,64 +626,64 @@
   --bg: #ffffff;
   --bg-np: #fef9ee;
   --side: #fef9ee;
-  --accent: #8f6500;
+  --accent: #6e4c00;
   --on-accent: #ffffff;
-  --text: #8f6500;
-  --text-strong: #8f6500;
-  --muted: #8f6500;
-  --label: #8f6500;
-  --label-2: #8f6500;
-  --coll-label: #8f6500;
-  --coll-title: #8f6500;
+  --text: #6e4c00;
+  --text-strong: #6e4c00;
+  --muted: #6e4c00;
+  --label: #6e4c00;
+  --label-2: #6e4c00;
+  --coll-label: #6e4c00;
+  --coll-title: #6e4c00;
   --item: #fdf4e0;
-  --item-active: #fae8be;
-  --item-active-line: #8f6500;
-  --item-active-text: #8f6500;
+  --item-active: #fae7be;
+  --item-active-line: #6e4c00;
+  --item-active-text: #6e4c00;
   --row: #fbeed0;
-  --row-playing: #fae8be;
+  --row-playing: #fae7be;
   --row-line: transparent;
-  --row-playing-line: #8f6500;
-  --row-title: #8f6500;
-  --row-title-playing: #8f6500;
-  --pb-bg: #fbecc9;
-  --pb-fg: #8f6500;
-  --pbp-bg: #8f6500;
+  --row-playing-line: #6e4c00;
+  --row-title: #6e4c00;
+  --row-title-playing: #6e4c00;
+  --pb-bg: #fbebc9;
+  --pb-fg: #6e4c00;
+  --pbp-bg: #6e4c00;
   --pbp-fg: #ffffff;
-  --bar: #f8e3af;
-  --bar-line: #8f6500;
-  --track: #f8e3af;
+  --bar: #f8e2af;
+  --bar-line: #6e4c00;
+  --track: #f8e2af;
   --circle-fill: #ffffff;
-  --circle-line: #8f6500;
-  --circle-fg: #8f6500;
+  --circle-line: #6e4c00;
+  --circle-fg: #6e4c00;
   --search-bg: #ffffff;
-  --search-line: #8f6500;
-  --search-text: #8f6500;
-  --head-line: #8f6500;
-  --avatar-bg: #8f6500;
+  --search-line: #6e4c00;
+  --search-text: #6e4c00;
+  --head-line: #6e4c00;
+  --avatar-bg: #6e4c00;
   --avatar-fg: #ffffff;
-  --ctl: #8f6500;
-  --ext: #8f6500;
-  --play-big-bg: #8f6500;
+  --ctl: #6e4c00;
+  --ext: #6e4c00;
+  --play-big-bg: #6e4c00;
   --play-big-fg: #ffffff;
-  --scroll: #f8e3af;
-  --overlay: rgba(143, 101, 0, .38);
+  --scroll: #f8e2af;
+  --overlay: rgba(110, 76, 0, .38);
   --sheet: #fef9ee;
-  --sheet-line: rgba(143, 101, 0, .22);
+  --sheet-line: rgba(110, 76, 0, .22);
   --chip: #fdf4e0;
-  --chip-line: rgba(143, 101, 0, .22);
+  --chip-line: rgba(110, 76, 0, .22);
   --input: #fdf4e0;
-  --input-line: rgba(143, 101, 0, .28);
-  --input-ph: rgba(143, 101, 0, .4);
-  --sheet-text: #8f6500;
-  --sheet-eyebrow: #8f6500;
-  --sheet-muted: #8f6500;
-  --rule: rgba(143, 101, 0, .16);
+  --input-line: rgba(110, 76, 0, .28);
+  --input-ph: rgba(110, 76, 0, .4);
+  --sheet-text: #6e4c00;
+  --sheet-eyebrow: #6e4c00;
+  --sheet-muted: #6e4c00;
+  --rule: rgba(110, 76, 0, .16);
   --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/Logo.png');
   --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/Cover.png');
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-yellow/CoverBig.png');
-  --toast-bg: #8f6500;
+  --toast-bg: #6e4c00;
   --toast-fg: #ffffff;
-  --heart-on: #8f6500;
+  --heart-on: #6e4c00;
   --track-player: #fdf7e8;
 }
 
@@ -627,77 +693,146 @@
   --bg: #ffffff;
   --bg-np: #f5effd;
   --side: #f5effd;
-  --accent: #4a1790;
+  --accent: #3b1074;
   --on-accent: #ffffff;
-  --text: #4a1790;
-  --text-strong: #4a1790;
-  --muted: #4a1790;
-  --label: #4a1790;
-  --label-2: #4a1790;
-  --coll-label: #4a1790;
-  --coll-title: #4a1790;
-  --item: #ece1fc;
+  --text: #3b1074;
+  --text-strong: #3b1074;
+  --muted: #3b1074;
+  --label: #3b1074;
+  --label-2: #3b1074;
+  --coll-label: #3b1074;
+  --coll-title: #3b1074;
+  --item: #ede1fc;
   --item-active: #d8c0f8;
-  --item-active-line: #4a1790;
-  --item-active-text: #4a1790;
-  --row: #e2d1fa;
+  --item-active-line: #3b1074;
+  --item-active-text: #3b1074;
+  --row: #e3d1fa;
   --row-playing: #d8c0f8;
   --row-line: transparent;
-  --row-playing-line: #4a1790;
-  --row-title: #4a1790;
-  --row-title-playing: #4a1790;
-  --pb-bg: #decbf9;
-  --pb-fg: #4a1790;
-  --pbp-bg: #4a1790;
+  --row-playing-line: #3b1074;
+  --row-title: #3b1074;
+  --row-title-playing: #3b1074;
+  --pb-bg: #dfcbf9;
+  --pb-fg: #3b1074;
+  --pbp-bg: #3b1074;
   --pbp-fg: #ffffff;
-  --bar: #ceb1f6;
-  --bar-line: #4a1790;
-  --track: #ceb1f6;
+  --bar: #cfb1f6;
+  --bar-line: #3b1074;
+  --track: #cfb1f6;
   --circle-fill: #ffffff;
-  --circle-line: #4a1790;
-  --circle-fg: #4a1790;
+  --circle-line: #3b1074;
+  --circle-fg: #3b1074;
   --search-bg: #ffffff;
-  --search-line: #4a1790;
-  --search-text: #4a1790;
-  --head-line: #4a1790;
-  --avatar-bg: #4a1790;
+  --search-line: #3b1074;
+  --search-text: #3b1074;
+  --head-line: #3b1074;
+  --avatar-bg: #3b1074;
   --avatar-fg: #ffffff;
-  --ctl: #4a1790;
-  --ext: #4a1790;
-  --play-big-bg: #4a1790;
+  --ctl: #3b1074;
+  --ext: #3b1074;
+  --play-big-bg: #3b1074;
   --play-big-fg: #ffffff;
-  --scroll: #ceb1f6;
-  --overlay: rgba(74, 23, 144, .38);
+  --scroll: #cfb1f6;
+  --overlay: rgba(59, 16, 116, .38);
   --sheet: #f5effd;
-  --sheet-line: rgba(74, 23, 144, .22);
-  --chip: #ece1fc;
-  --chip-line: rgba(74, 23, 144, .22);
-  --input: #ece1fc;
-  --input-line: rgba(74, 23, 144, .28);
-  --input-ph: rgba(74, 23, 144, .4);
-  --sheet-text: #4a1790;
-  --sheet-eyebrow: #4a1790;
-  --sheet-muted: #4a1790;
-  --rule: rgba(74, 23, 144, .16);
+  --sheet-line: rgba(59, 16, 116, .22);
+  --chip: #ede1fc;
+  --chip-line: rgba(59, 16, 116, .22);
+  --input: #ede1fc;
+  --input-line: rgba(59, 16, 116, .28);
+  --input-ph: rgba(59, 16, 116, .4);
+  --sheet-text: #3b1074;
+  --sheet-eyebrow: #3b1074;
+  --sheet-muted: #3b1074;
+  --rule: rgba(59, 16, 116, .16);
   --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/Logo.png');
   --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/Cover.png');
   --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-purple/CoverBig.png');
-  --toast-bg: #4a1790;
+  --toast-bg: #3b1074;
   --toast-fg: #ffffff;
-  --heart-on: #4a1790;
+  --heart-on: #3b1074;
   --track-player: #f1e8fc;
+}
+
+/* ---------- LIGHT (BLACK) ---------- */
+:root[data-theme="light-black"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --bg-np: #f6f6f6;
+  --side: #f6f6f6;
+  --accent: #000000;
+  --on-accent: #ffffff;
+  --text: #000000;
+  --text-strong: #000000;
+  --muted: #000000;
+  --label: #000000;
+  --label-2: #000000;
+  --coll-label: #000000;
+  --coll-title: #000000;
+  --item: #eeeeee;
+  --item-active: #dcdcdc;
+  --item-active-line: #000000;
+  --item-active-text: #000000;
+  --row: #e6e6e6;
+  --row-playing: #dcdcdc;
+  --row-line: transparent;
+  --row-playing-line: #000000;
+  --row-title: #000000;
+  --row-title-playing: #000000;
+  --pb-bg: #e2e2e2;
+  --pb-fg: #000000;
+  --pbp-bg: #000000;
+  --pbp-fg: #ffffff;
+  --bar: #d3d3d3;
+  --bar-line: #000000;
+  --track: #d3d3d3;
+  --circle-fill: #ffffff;
+  --circle-line: #000000;
+  --circle-fg: #000000;
+  --search-bg: #ffffff;
+  --search-line: #000000;
+  --search-text: #000000;
+  --head-line: #000000;
+  --avatar-bg: #000000;
+  --avatar-fg: #ffffff;
+  --ctl: #000000;
+  --ext: #000000;
+  --play-big-bg: #000000;
+  --play-big-fg: #ffffff;
+  --scroll: #d3d3d3;
+  --overlay: rgba(0, 0, 0, .38);
+  --sheet: #f6f6f6;
+  --sheet-line: rgba(0, 0, 0, .22);
+  --chip: #eeeeee;
+  --chip-line: rgba(0, 0, 0, .22);
+  --input: #eeeeee;
+  --input-line: rgba(0, 0, 0, .28);
+  --input-ph: rgba(0, 0, 0, .4);
+  --sheet-text: #000000;
+  --sheet-eyebrow: #000000;
+  --sheet-muted: #000000;
+  --rule: rgba(0, 0, 0, .16);
+  --logo: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-black/Logo.png');
+  --cover: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-black/Cover.png');
+  --cover-big: url('https://raw.githubusercontent.com/Rishit-1010/Stereo/main/themes/light-black/CoverBig.png');
+  --toast-bg: #000000;
+  --toast-fg: #ffffff;
+  --heart-on: #000000;
+  --track-player: #f2f2f2;
 }
 
 /* phone / tablet: the same per-mode tweaks the original themes get */
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
-  :root[data-theme="dark-red"] { --coll-label: #ff3434; --coll-title: #ff3434; --bg-np: #190000; }
+  :root[data-theme="dark-red"] { --coll-label: #ff5252; --coll-title: #ff5252; --bg-np: #190000; }
   :root[data-theme="dark-yellow"] { --coll-label: #f4ff00; --coll-title: #f4ff00; --bg-np: #181900; }
-  :root[data-theme="dark-blue"] { --coll-label: #3cc4ff; --coll-title: #3cc4ff; --bg-np: #001119; }
-  :root[data-theme="dark-violet"] { --coll-label: #b78cff; --coll-title: #b78cff; --bg-np: #090019; }
-  :root[data-theme="light-maroon"] { --row-playing: #f6b1bd; }
-  :root[data-theme="light-green"] { --row-playing: #b1f6d4; }
-  :root[data-theme="light-yellow"] { --row-playing: #f8e3af; }
-  :root[data-theme="light-purple"] { --row-playing: #ceb1f6; }
+  :root[data-theme="dark-blue"] { --coll-label: #5ccfff; --coll-title: #5ccfff; --bg-np: #001219; }
+  :root[data-theme="dark-violet"] { --coll-label: #c8a2ff; --coll-title: #c8a2ff; --bg-np: #0a0019; }
+  :root[data-theme="dark-white"] { --coll-label: #ffffff; --coll-title: #ffffff; --bg-np: #0c0c0c; }
+  :root[data-theme="light-maroon"] { --row-playing: #f6b1bc; }
+  :root[data-theme="light-green"] { --row-playing: #b1f6d7; }
+  :root[data-theme="light-yellow"] { --row-playing: #f8e2af; }
+  :root[data-theme="light-purple"] { --row-playing: #cfb1f6; }
+  :root[data-theme="light-black"] { --row-playing: #d3d3d3; }
 }
 
 /* --------------------------------- base --------------------------------- */
@@ -948,6 +1083,9 @@ input { font: inherit; color: inherit; }
 .row.playing .title { color: var(--row-title-playing); }
 .row .genre { flex: none; width: 133px; font: 400 16px/1.2 var(--f-karla); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row .dur { flex: none; font: 400 14px/1.25 var(--f-mono); color: var(--muted); margin-right: 20px; font-variant-numeric: tabular-nums; opacity: .85; }
+.row .meta { display: contents; }
+.row .dur:empty { display: none; }
+.row .offline-tag.empty { display: none; }
 .row .offline-tag { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; color: var(--accent); margin-right: 8px; flex: none; }
 .row .offline-tag .ico { width: 14px; height: 14px; stroke-width: 2.2; }
 .like { flex: none; width: 17px; height: 17px; display: grid; place-items: center; color: var(--text); margin-right: 35px; font-size: 20px; transition: transform .2s var(--ease), color .2s; }
@@ -984,16 +1122,14 @@ input { font: inherit; color: inherit; }
 
 /* ---------------------------- NOW PLAYING (desktop) ---------------------- */
 .np-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 40px; }
-.np-top { display: flex; align-items: center; margin: 38px 121px 0 182px; height: 40px; }
-.np-label { flex: 1; text-align: center; font: 700 14px/1.3 var(--f-mono); letter-spacing: 2.8px; color: #c2c2c2; padding-left: 2px; }
-:root[data-theme^="light"] .np-label { color: var(--text); }
-.np-actions { display: flex; gap: 10px; }
+.np-top { display: flex; align-items: center; justify-content: space-between; margin: 38px 103px 0 211px; height: 40px; }
+.np-actions { display: flex; gap: 10px; margin-left: auto; justify-content: flex-end; }
 .np-body { display: flex; align-items: flex-start; gap: clamp(24px, 14.5%, 127px); margin: 69px 103px 0 211px; }
 .np-art {
   flex: 0 1 350px; min-width: 190px;
   position: relative;
   isolation: isolate;
-  padding-bottom: 18px; /* room for EQ bars */
+  padding-bottom: 34px; /* room for EQ bars */
 }
 /* idle / paused: the original square cover. playing: it morphs into a circle (and back). */
 .np-art-img {
@@ -1038,7 +1174,7 @@ input { font: inherit; color: inherit; }
 .np-art::after {
   content: '';
   position: absolute;
-  inset: -8%;
+  top: 0; left: 0; width: 100%; aspect-ratio: 1; /* exactly the cover's circle */
   border-radius: 50%;
   border: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
   pointer-events: none;
@@ -1049,7 +1185,7 @@ input { font: inherit; color: inherit; }
 .np-eq {
   display: none;
   position: absolute;
-  left: 50%; bottom: -6px;
+  left: 50%; bottom: -4px;
   transform: translateX(-50%);
   height: 22px; width: 42%;
   align-items: flex-end; justify-content: center; gap: 5px;
@@ -1602,8 +1738,7 @@ input { font: inherit; color: inherit; }
   /* now playing */
   .np-top { margin: 15px 10px 0; }
   .np-actions { gap: 10px; }
-  .np-label { padding-left: 0; }
-  .np-actions { position: relative; }
+    .np-actions { position: relative; }
   .np-body { display: block; margin: 36px 23px 0 20px; }
   .np-art { width: min(250px, 38dvh, 100%); margin: 0 auto; }
   .np-info { padding-top: 0; min-width: 0; margin-top: 30px; }
@@ -1725,4 +1860,29 @@ input { font: inherit; color: inherit; }
     filter: none;
   }
   .is-playing .np-eq { display: none; }
+}
+
+/* ======= touch layouts: two-line song rows (name + category), aligned right-hand columns ======= */
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .row { height: 60px; padding: 0 12px 0 10px; }
+  .row .meta { display: flex; flex-direction: column; justify-content: center; gap: 3px; flex: 1; min-width: 0; }
+  .row .title { flex: none; font-size: 13px; line-height: 1.25; }
+  .row .genre { width: auto; font-size: 11px; line-height: 1.2; }
+  .row .dur { display: block !important; flex: none; width: 34px; margin: 0 6px 0 8px; text-align: right; font: 400 11px/1 var(--f-anta); letter-spacing: .3px; opacity: .9; }
+  .row .dur:empty { visibility: hidden; }
+  .row .offline-tag, .row .offline-tag.empty { display: inline-flex !important; width: 16px; height: 16px; margin: 0 8px 0 0; }
+  .row .offline-tag.empty { visibility: hidden; }
+  .row .offline-tag .ico { width: 14px; height: 14px; }
+  .like { margin-right: 12px; }
+  .row .thumb { width: 38px; height: 38px; margin-right: 11px; }
+  .row .num { width: 22px; }
+  .rplay { width: 28px; height: 28px; }
+  .rplay .ico, .row.playing .rplay .ico { width: 11px; height: 11px; }
+  .np-top { align-items: center; }
+}
+@media (max-width: 360px) { .row .dur { width: 30px; margin: 0 4px 0 4px; } .row .thumb { width: 34px; height: 34px; margin-right: 9px; } .row .num { display: none; } }
+
+/* bottom bar: the volume slider makes the right-hand group collide with the transport buttons below ~1560px */
+@media (min-width: 1321px) and (max-width: 1560px) and (hover: hover) {
+  .pl-right .vol { display: none; }
 }

@@ -36,8 +36,8 @@
      opens, so opening Now Playing never waits on an image. (Other themes load when they are picked.) */
   (function () {
     var RAW = 'https://raw.githubusercontent.com/Rishit-1010/Stereo/main/';
-    var IDS = ['dark', 'light', 'dark-red', 'dark-yellow', 'dark-blue', 'dark-violet',
-               'light-maroon', 'light-green', 'light-yellow', 'light-purple'];
+    var IDS = ['dark', 'light', 'dark-red', 'dark-yellow', 'dark-blue', 'dark-violet', 'dark-white',
+               'light-maroon', 'light-green', 'light-yellow', 'light-purple', 'light-black'];
     var id = null;
     try {
       var t = JSON.parse(localStorage.getItem('stereo.theme'));
@@ -197,7 +197,6 @@
       <div class="np-scroll">
         <div class="np-top">
           <button class="circle-btn" id="npBack" type="button" aria-label="Back"><svg class="ico i-chev"><use href="#i-chev"/></svg></button>
-          <span class="np-label">NOW PLAYING</span>
           <div class="np-actions">
             <button class="circle-btn" id="npDelete" type="button" aria-label="Remove this song" hidden><svg class="ico i-act"><use href="#i-trash"/></svg></button>
             <button class="circle-btn" id="npOffline" type="button" aria-label="Save for offline" title="Save for offline"><svg class="ico i-act"><use href="#i-cloud-check"/></svg></button>
