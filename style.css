@@ -1623,7 +1623,6 @@ input { font: inherit; color: inherit; }
   .logo { width: 150px; height: 62px; }
   .nav { padding: 0 16px 0 18px; margin-top: 28px; }
   .pl-right { gap: 16px; padding-right: 18px; }
-  .pl-right .vol { display: none; }
   .pl-left { padding-left: 16px; }
   .pl-center { --seek-w: clamp(170px, calc(100vw - 760px), 360px); }
   .row .genre { width: 110px; }
@@ -1633,7 +1632,7 @@ input { font: inherit; color: inherit; }
 @media (min-width: 901px) and (max-width: 1100px) {
   :root { --sb-w: 200px; }
   .pl-right { gap: 12px; padding-right: 14px; }
-  .pl-right .ext-vol, .pl-right .ext-repeat, .pl-right .ext-timer, .pl-right .ext-shuffle { display: none; }
+  .pl-right .ext-repeat, .pl-right .ext-timer, .pl-right .ext-shuffle { display: none; }
   .pl-meta .pl-genre { display: none; }
   .pl-center { --seek-w: clamp(160px, calc(100vw - 640px), 320px); }
   #topbar { padding-left: 28px; padding-right: 22px; }
@@ -1882,7 +1881,19 @@ input { font: inherit; color: inherit; }
 }
 @media (max-width: 360px) { .row .dur { width: 30px; margin: 0 4px 0 4px; } .row .thumb { width: 34px; height: 34px; margin-right: 9px; } .row .num { display: none; } }
 
-/* bottom bar: the volume slider makes the right-hand group collide with the transport buttons below ~1560px */
-@media (min-width: 1321px) and (max-width: 1560px) and (hover: hover) {
-  .pl-right .vol { display: none; }
-}
+/* bottom bar (desktop): the volume slider always stays visible; the group tightens as the window narrows */
+@media (min-width: 901px) and (max-width: 1560px) { .pl-right { gap: 12px; padding-right: 18px; } .pl-right .vol { width: 70px; flex: 0 0 70px; } }
+@media (min-width: 901px) and (max-width: 1320px) { .pl-right { gap: 8px; padding-right: 14px; } .pl-right .vol { width: 56px; flex: 0 0 56px; } }
+
+/* light themes: inactive control icons are a clear grey, switched-on ones take the theme colour */
+:root[data-theme^="light"] { --ext: #6b6b73; }
+
+/* dark themes: top bar (search box, icon, text, sidebar button) uses the theme colour, like the light themes */
+:root:not([data-theme^="light"]) { --search-line: var(--accent); --search-text: var(--accent); }
+:root:not([data-theme^="light"]) .panel-btn { color: var(--accent); }
+
+/* sidebar: "More options" */
+.more-btn { margin-top: 10px; background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.more-btn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); transform: translateY(-2px); }
+.more-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.more-list .add-btn { margin-top: 0; height: 46px; }

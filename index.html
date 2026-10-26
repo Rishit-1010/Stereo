@@ -141,11 +141,7 @@
       </ul>
       <button type="button" class="add-btn" id="addBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Add song</span></button>
       <button type="button" class="add-btn playlist-btn" id="playlistBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Create new playlist</span></button>
-      <!-- shown only where the player can be installed (hidden once installed, and inside the Android/desktop apps) -->
-      <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install app</span></button>
-      <button type="button" class="add-btn share-btn" id="shareBtn"><svg class="ico"><use href="#i-share"/></svg><span>Share Stereo</span></button>
-      <button type="button" class="add-btn export-btn" id="exportBtn"><svg class="ico"><use href="#i-download"/></svg><span>Export Library</span></button>
-      <button type="button" class="add-btn import-btn" id="importBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Import Library</span></button>
+      <button type="button" class="add-btn more-btn" id="moreBtn"><svg class="ico"><use href="#i-queue"/></svg><span>More options</span></button>
       <input type="file" id="importInput" accept=".json,application/json" hidden>
     </nav>
   </aside>
@@ -290,6 +286,21 @@
       <button type="button" class="ext ext-expand" data-act="expand" aria-label="Open now playing"><svg class="ico"><use href="#i-expand"/></svg></button>
     </div>
   </footer>
+</div>
+
+<!-- ============================== MORE OPTIONS ============================ -->
+<div class="modal" id="moreModal" hidden role="dialog" aria-modal="true" aria-labelledby="moreTitle">
+  <div class="sheet add-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">MORE OPTIONS</p>
+    <h2 class="sheet-title" id="moreTitle">Stereo</h2>
+    <div class="more-list">
+      <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install Stereo</span></button>
+      <button type="button" class="add-btn share-btn" id="shareBtn"><svg class="ico"><use href="#i-share"/></svg><span>Share Stereo</span></button>
+      <button type="button" class="add-btn export-btn" id="exportBtn"><svg class="ico"><use href="#i-download"/></svg><span>Export Library</span></button>
+      <button type="button" class="add-btn import-btn" id="importBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Import Library</span></button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================ SLEEP TIMER ============================ -->

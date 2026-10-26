@@ -1785,6 +1785,13 @@
   installBtn.addEventListener('click', onInstallClick);
   syncInstallBtn();
 
+  /* ------------------------ sidebar: More options ------------------------- */
+  const moreModal = $('#moreModal');
+  $('#moreBtn').addEventListener('click', () => { closeSidebar(); openModal(moreModal); });
+  $('.more-list', moreModal).addEventListener('click', e => {
+    if (e.target.closest('button')) closeModal(moreModal); /* the option's own handler has already run */
+  });
+
   /* ----------------------------- share Stereo ----------------------------- */
   const SHARE_URL = 'https://rishit-1010.github.io/Stereo';
   const SHARE_TEXT = "Check out Rishit's Stereo — a personal music player.";
