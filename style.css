@@ -1354,7 +1354,7 @@ input { font: inherit; color: inherit; }
 .pl-genre { display: block; margin-top: 9px; font: 400 16px/19px var(--f-karla); color: var(--muted); }
 
 .pl-center {
-  --seek-w: clamp(170px, calc(100vw - 880px), 400px);
+  --seek-w: clamp(250px, calc(100vw - 1060px), 400px);
   position: relative; width: var(--seek-w); height: 100px; justify-self: center; transform: translateX(-9px);
 }
 .pl-controls { position: absolute; left: 50%; top: 15px; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; width: max(var(--seek-w), 280px); gap: 0; }
@@ -1624,7 +1624,7 @@ input { font: inherit; color: inherit; }
   .nav { padding: 0 16px 0 18px; margin-top: 28px; }
   .pl-right { gap: 16px; padding-right: 18px; }
   .pl-left { padding-left: 16px; }
-  .pl-center { --seek-w: clamp(170px, calc(100vw - 760px), 360px); }
+  .pl-center { --seek-w: clamp(220px, calc(100vw - 900px), 360px); }
   .row .genre { width: 110px; }
   .row .num { width: 36px; }
   .row .title { font-size: 16px; }
@@ -1634,7 +1634,7 @@ input { font: inherit; color: inherit; }
   .pl-right { gap: 12px; padding-right: 14px; }
   .pl-right .ext-repeat, .pl-right .ext-timer, .pl-right .ext-shuffle { display: none; }
   .pl-meta .pl-genre { display: none; }
-  .pl-center { --seek-w: clamp(160px, calc(100vw - 640px), 320px); }
+  .pl-center { --seek-w: clamp(160px, calc(100vw - 720px), 320px); }
   #topbar { padding-left: 28px; padding-right: 22px; }
   .row { height: 60px; padding: 0 14px 0 12px; }
   .row .thumb { width: 40px; height: 40px; margin-right: 12px; }
@@ -1882,11 +1882,11 @@ input { font: inherit; color: inherit; }
 @media (max-width: 360px) { .row .dur { width: 30px; margin: 0 4px 0 4px; } .row .thumb { width: 34px; height: 34px; margin-right: 9px; } .row .num { display: none; } }
 
 /* bottom bar (desktop): the volume slider always stays visible; the group tightens as the window narrows */
-@media (min-width: 901px) and (max-width: 1560px) { .pl-right { gap: 12px; padding-right: 18px; } .pl-right .vol { width: 70px; flex: 0 0 70px; } }
-@media (min-width: 901px) and (max-width: 1320px) { .pl-right { gap: 8px; padding-right: 14px; } .pl-right .vol { width: 56px; flex: 0 0 56px; } }
+@media (min-width: 901px) and (max-width: 1560px) { .pl-right { gap: 16px; padding-right: 20px; } .pl-right .vol { width: 60px; flex: 0 0 60px; } .pl-right .ext { width: 28px; } }
+@media (min-width: 901px) and (max-width: 1320px) { .pl-right { gap: 12px; padding-right: 16px; } .pl-right .vol { width: 56px; flex: 0 0 56px; } }
 
 /* light themes: inactive control icons are a clear grey, switched-on ones take the theme colour */
-:root[data-theme^="light"] { --ext: #6b6b73; }
+:root[data-theme^="light"] { --ext: #3d3d45; }
 
 /* dark themes: top bar (search box, icon, text, sidebar button) uses the theme colour, like the light themes */
 :root:not([data-theme^="light"]) { --search-line: var(--accent); --search-text: var(--accent); }
@@ -1897,3 +1897,6 @@ input { font: inherit; color: inherit; }
 .more-btn:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); transform: translateY(-2px); }
 .more-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
 .more-list .add-btn { margin-top: 0; height: 46px; }
+
+/* dark themes: "COLLECTION" label and the collection name use the theme colour on every screen size */
+:root:not([data-theme^="light"]) { --coll-label: var(--accent); --coll-title: var(--accent); }
