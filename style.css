@@ -1082,7 +1082,7 @@ input { font: inherit; color: inherit; }
 .row .title { flex: 1; min-width: 0; font: 400 18px/1.25 var(--f-anta); color: var(--row-title); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row.playing .title { color: var(--row-title-playing); }
 .row .genre { flex: none; width: 133px; font: 400 16px/1.2 var(--f-karla); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row .dur { flex: none; font: 400 14px/1.25 var(--f-mono); color: var(--muted); margin-right: 20px; font-variant-numeric: tabular-nums; opacity: .85; }
+.row .dur { flex: none; font: 400 14px/1.25 var(--f-anta); color: var(--muted); margin-right: 20px; font-variant-numeric: tabular-nums; opacity: .85; }
 .row .meta { display: contents; }
 .row .dur:empty { display: none; }
 .row .offline-tag.empty { display: none; }
