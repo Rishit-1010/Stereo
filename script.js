@@ -1121,14 +1121,20 @@
   function openModal(el) { lastFocus = document.activeElement; $('#toast').hidden = true; el.hidden = false; }
   function closeModal(el) { el.hidden = true; if (lastFocus && lastFocus.focus) { try { lastFocus.focus({ preventScroll: true }); } catch (e) {} } }
   $$('.modal').forEach(m => {
-    m.addEventListener('mousedown', e => { if (e.target === m) closeModal(m); });
+    m.addEventListener('mousedown', e => { if (e.target === m && !m.hasAttribute('data-lock')) closeModal(m); });
     $$('[data-close]', m).forEach(b => b.addEventListener('click', () => closeModal(m)));
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       const open = $$('.modal').find(m => !m.hidden);
-      if (open) closeModal(open); else closeSidebar();
+      if (open) { if (!open.hasAttribute('data-lock')) closeModal(open); } else closeSidebar();
     }
+  });
+
+  /* student-project disclaimer: shown on every fresh visit until acknowledged */
+  $('#discOk').addEventListener('click', () => {
+    try { sessionStorage.setItem('stereo.ack', '1'); } catch (e) {}
+    $('#disclaimerModal').hidden = true;
   });
 
   /* ----------------------------- sleep timer ------------------------------ */
@@ -1355,7 +1361,7 @@
     if (typing) return;
     const openModals = $$('.modal').filter(m => !m.hidden);
     if (openModals.length) {
-      if (e.key === 'Escape') closeModal(openModals[0]);
+      if (e.key === 'Escape' && !openModals[0].hasAttribute('data-lock')) closeModal(openModals[0]);
       return;
     }
     if (e.code === 'Space' && !(t.matches && t.matches('button, [role="button"], a, input[type="range"]'))) {

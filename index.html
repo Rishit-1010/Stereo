@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
+  <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rishit’s Stereo</title>
 <meta name="description" content="Rishit’s Stereo — a personal music player.">
@@ -297,12 +298,27 @@
     <h2 class="sheet-title" id="moreTitle">Stereo</h2>
     <div class="more-list">
       <button type="button" class="add-btn install-btn" id="installBtn" hidden><svg class="ico"><use href="#i-download"/></svg><span>Install Stereo</span></button>
-      <button type="button" class="add-btn share-btn" id="shareBtn"><svg class="ico"><use href="#i-share"/></svg><span>Share Stereo</span></button>
       <button type="button" class="add-btn export-btn" id="exportBtn"><svg class="ico"><use href="#i-download"/></svg><span>Export Library</span></button>
       <button type="button" class="add-btn import-btn" id="importBtn"><svg class="ico"><use href="#i-plus"/></svg><span>Import Library</span></button>
     </div>
   </div>
 </div>
+
+<!-- ============================== DISCLAIMER ============================= -->
+<div class="modal" id="disclaimerModal" data-lock role="dialog" aria-modal="true" aria-labelledby="discTitle">
+  <div class="sheet add-sheet disc-sheet">
+    <p class="eyebrow">PLEASE READ</p>
+    <h2 class="sheet-title" id="discTitle">A student project</h2>
+    <p class="disc-text"><b>Rishit’s Stereo</b> was designed and built by a student purely as a <b>school / learning project</b>. It is a demonstration of web design and coding, not a professional or commercial product.</p>
+    <ul class="disc-list">
+      <li>It is <b>not for professional use</b> and is <b>not meant to be shared or distributed</b>.</li>
+      <li>No money is made from it, and no ownership is claimed over any song, artist name or artwork. All music and related content belong to their respective owners.</li>
+      <li>It exists only to show the project. It is not a public service.</li>
+    </ul>
+    <div class="sheet-actions"><button type="button" class="start-btn" id="discOk">I understand</button></div>
+  </div>
+</div>
+<script>try { if (sessionStorage.getItem('stereo.ack') === '1') document.getElementById('disclaimerModal').hidden = true; } catch (e) {}</script>
 
 <!-- ============================ SLEEP TIMER ============================ -->
 <div class="modal" id="sleepModal" hidden role="dialog" aria-modal="true" aria-labelledby="sleepTitle">

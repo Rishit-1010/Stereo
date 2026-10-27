@@ -1874,3 +1874,10 @@ input { font: inherit; color: inherit; }
 .eq-foot { margin-top: 18px; }
 .eq-foot #eqNote { font: 400 13px/1.3 var(--f-karla); color: var(--sheet-muted); }
 @media (max-width: 380px) { .np-extra { gap: 0; } .np-extra .ext { width: 30px; } }
+
+/* disclaimer */
+#disclaimerModal { z-index: 400; }
+.disc-text { margin: 12px 0 0; font: 400 15px/1.5 var(--f-karla); color: var(--sheet-text); }
+.disc-list { list-style: disc; margin: 14px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font: 400 14px/1.5 var(--f-karla); color: var(--sheet-muted); }
+.disc-list b { color: var(--sheet-text); font-weight: 600; }
+.disc-sheet .sheet-actions { margin-top: 20px; }
