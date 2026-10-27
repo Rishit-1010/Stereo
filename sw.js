@@ -1,10 +1,10 @@
 /* Rishit's Stereo — service worker
    - player shell & assets: network first, cached copy when offline
    - logos / covers / fonts: cached after first visit
-   - audio caching: supports offline audio playback with 206 range request handling */
+   - audio: not intercepted (offline songs are played from the cache by script.js) */
 'use strict';
 
-const CACHE = 'stereo-v4';
+const CACHE = 'stereo-v5';
 const AUDIO_CACHE = 'stereo-audio-v1';
 const SHELL = [
   './', './index.html', './style.css', './script.js', './songs.js', './manifest.webmanifest',
@@ -65,11 +65,8 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  const isAudio = /\.(mp3|m4a|aac|wav|ogg|opus)$/i.test(url.pathname) || url.pathname.includes('/tracks/') || url.pathname.includes('/releases/download/');
-  if (isAudio) {
-    event.respondWith(handleAudioRequest(req));
-    return;
-  }
+  /* audio is never intercepted: the browser streams it natively so playback survives the screen locking */
+  if (/\.(mp3|m4a|aac|wav|ogg|opus)$/i.test(url.pathname) || url.pathname.includes('/tracks/') || url.pathname.includes('/releases/download/')) return;
 
   if (url.origin === self.location.origin) {
     event.respondWith(

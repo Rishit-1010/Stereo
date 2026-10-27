@@ -436,7 +436,7 @@
   }
 
   function fadeTransition(fn) {
-    if (!S.crossfade || audio.paused) { fn(); return; }
+    if (!S.crossfade || audio.paused || audio.ended || document.hidden) { fn(); return; } /* no timer-based fades in the background */
     const startVol = audio.volume;
     const steps = 6;
     const interval = 25;
@@ -460,6 +460,25 @@
     }, interval);
   }
 
+  /* Songs saved for offline are read from the cache and played from a blob URL, so the service worker never
+     has to stream audio (a service worker that proxies audio gets suspended when the phone locks, which cuts playback). */
+  let offlineBlobUrl = '';
+  function setAudioSource(s) {
+    if (offlineBlobUrl) { URL.revokeObjectURL(offlineBlobUrl); offlineBlobUrl = ''; }
+    if (S.offline.has(s.id) && !s.user && 'caches' in window) {
+      caches.open('stereo-audio-v1').then(c => c.match(s.src, { ignoreSearch: true })).then(res => res ? res.blob() : null).then(blob => {
+        if (S.cur !== s.id) return;
+        if (blob) { offlineBlobUrl = URL.createObjectURL(blob); audio.src = offlineBlobUrl; }
+        else audio.src = s.src;
+        audio.load();
+        if (S.wantPlay) playAudio();
+      }).catch(() => { if (S.cur === s.id) { audio.src = s.src; audio.load(); if (S.wantPlay) playAudio(); } });
+      return;
+    }
+    audio.src = s.src;
+    audio.load();
+  }
+
   function loadSong(id, autoplay) {
     const s = libMap.get(id);
     if (!s) return;
@@ -470,8 +489,7 @@
     if (changed) {
       /* Prefer a fuller buffer so playback survives the screen turning off. */
       try { audio.preload = 'auto'; } catch (e) {}
-      audio.src = s.src;
-      audio.load();
+      setAudioSource(s);
     }
     syncNow();
     updateMediaSession();
@@ -642,44 +660,80 @@
 
   /* Web Audio API visualizer */
   let audioCtx = null, analyser = null, audioSrcNode = null, freqData = null;
-  function initVisualizer() {
-    if (audioCtx) {
-      if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-      return;
-    }
+  /* ------------------------------ equalizer ------------------------------- */
+  /* The Web Audio graph is only built once the equalizer is actually used (a non-flat setting), so
+     with the default flat setting the audio plays natively exactly as before. */
+  const EQ_BANDS = [
+    { f: 60,    type: 'lowshelf',  name: 'Bass' },
+    { f: 230,   type: 'peaking',   name: 'Low mid' },
+    { f: 910,   type: 'peaking',   name: 'Mid' },
+    { f: 3600,  type: 'peaking',   name: 'High mid' },
+    { f: 12000, type: 'highshelf', name: 'Treble' }
+  ];
+  const EQ_PRESETS = [
+    { n: 'Flat', g: [0, 0, 0, 0, 0] },
+    { n: 'Bass boost', g: [8, 5, 0, 0, 0] },
+    { n: 'Treble boost', g: [0, 0, 0, 4, 8] },
+    { n: 'Vocal', g: [-3, -1, 4, 4, 1] },
+    { n: 'Rock', g: [5, 3, -2, 3, 5] },
+    { n: 'Loudness', g: [6, 2, -1, 2, 6] }
+  ];
+  const eqGet = () => { const v = store.get('eq', null); return Array.isArray(v) && v.length === 5 ? v.map(n => +n || 0) : [0, 0, 0, 0, 0]; };
+  S.eq = eqGet();
+  let eqCtx = null, eqFilters = null;
+  const eqFlat = () => S.eq.every(v => v === 0);
+  const eqSameOrigin = () => { try { const u = audio.currentSrc || audio.src; return !u || u.startsWith('blob:') || new URL(u, location.href).origin === location.origin; } catch (e) { return true; } };
+  function eqBuild() {
+    if (eqCtx) return true;
+    if (!eqSameOrigin()) return false; /* a cross-origin file would go silent inside a Web Audio graph */
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      audioCtx = new AudioCtx();
-      audioSrcNode = audioCtx.createMediaElementSource(audio);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.smoothingTimeConstant = 0.8;
-      audioSrcNode.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      freqData = new Uint8Array(analyser.frequencyBinCount);
-    } catch (e) {
-      // AudioContext fallback for environments where createMediaElementSource is restricted
-    }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      eqCtx = new AC();
+      const src = eqCtx.createMediaElementSource(audio);
+      eqFilters = EQ_BANDS.map(b => { const f = eqCtx.createBiquadFilter(); f.type = b.type; f.frequency.value = b.f; if (b.type === 'peaking') f.Q.value = 1; f.gain.value = 0; return f; });
+      let node = src; eqFilters.forEach(f => { node.connect(f); node = f; });
+      node.connect(eqCtx.destination);
+      eqCtx.onstatechange = () => { if (eqCtx.state !== 'running' && S.wantPlay) eqCtx.resume().catch(() => {}); };
+      return true;
+    } catch (e) { eqCtx = null; eqFilters = null; return false; }
   }
-
-  function updateVisualizer() {
-    if (!analyser || audio.paused || !freqData) return;
-    analyser.getByteFrequencyData(freqData);
-    const spans = $$('.np-eq span');
-    if (!spans.length) return;
-    const indices = [1, 3, 5, 8, 12];
-    spans.forEach((sp, i) => {
-      const val = freqData[indices[i]] || 0;
-      const h = Math.max(4, Math.round((val / 255) * 26));
-      sp.style.height = h + 'px';
-      sp.style.animation = 'none';
-    });
+  function eqApply() {
+    if (!eqCtx && (eqFlat() || !eqBuild())) { syncEqBtn(); return; }
+    eqFilters.forEach((f, i) => { f.gain.value = S.eq[i]; });
+    if (eqCtx.state !== 'running') eqCtx.resume().catch(() => {});
+    syncEqBtn();
   }
-
-  function resetVisualizer() {
-    $$('.np-eq span').forEach(sp => { sp.style.height = ''; sp.style.animation = ''; });
+  function initVisualizer() { eqApply(); }
+  function syncEqBtn() { $$('.ext-eq').forEach(b => b.classList.toggle('active', !eqFlat())); }
+  const fmtDb = v => (v > 0 ? '+' : '') + v + ' dB';
+  function renderEq() {
+    $('#eqPresets').innerHTML = EQ_PRESETS.map((p, i) => `<button type="button" class="chip${p.g.join() === S.eq.join() ? ' on' : ''}" data-p="${i}"><span>${p.n}</span></button>`).join('');
+    $('#eqBands').innerHTML = EQ_BANDS.map((b, i) => `<div class="eq-band"><label for="eqb${i}">${b.name}</label><input class="range" id="eqb${i}" data-b="${i}" type="range" min="-12" max="12" step="1" value="${S.eq[i]}" aria-label="${b.name}"><output id="eqo${i}">${fmtDb(S.eq[i])}</output></div>`).join('');
+    $$('#eqBands input').forEach(el => setRange(el, (+el.value + 12) / 24));
+    $('#eqReset').hidden = eqFlat();
+    $('#eqNote').textContent = eqFlat() ? 'Flat — the original sound' : 'Equalizer is on';
   }
+  function eqSet(vals, save = true) {
+    S.eq = vals.slice();
+    if (save) store.set('eq', S.eq);
+    if (!eqCtx && !eqFlat() && !eqBuild()) { toast('The equalizer isn’t available for this song’s source', 3000); S.eq = [0, 0, 0, 0, 0]; store.set('eq', S.eq); }
+    eqApply();
+  }
+  $('#eqPresets').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (!b) return; eqSet(EQ_PRESETS[+b.dataset.p].g); renderEq(); });
+  $('#eqBands').addEventListener('input', e => {
+    const el = e.target.closest('[data-b]'); if (!el) return;
+    const v = S.eq.slice(); v[+el.dataset.b] = +el.value;
+    $('#eqo' + el.dataset.b).textContent = fmtDb(+el.value);
+    setRange(el, (+el.value + 12) / 24);
+    eqSet(v);
+    $('#eqReset').hidden = eqFlat();
+    $('#eqNote').textContent = eqFlat() ? 'Flat — the original sound' : 'Equalizer is on';
+    $$('#eqPresets .chip').forEach((c, i) => c.classList.toggle('on', EQ_PRESETS[i].g.join() === S.eq.join()));
+  });
+  $('#eqReset').addEventListener('click', () => { eqSet([0, 0, 0, 0, 0]); renderEq(); });
+  function openEq() { renderEq(); openModal($('#eqModal')); }
+  syncEqBtn();
 
   /* audio events */
   audio.addEventListener('play', () => {
@@ -698,7 +752,6 @@
   });
   audio.addEventListener('pause', () => {
     coverSettle();
-    resetVisualizer();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
   });
@@ -732,7 +785,6 @@
   const stopRaf = () => { cancelAnimationFrame(raf); raf = 0; };
   function tick() {
     updateProgress();
-    updateVisualizer();
     raf = audio.paused ? 0 : requestAnimationFrame(tick);
   }
 
@@ -852,6 +904,7 @@
       case 'queue': openQueue(); break;
       case 'timer': openSleep(); break;
       case 'speed': openSpeed(); break;
+      case 'eq': openEq(); break;
       case 'expand': showView('np'); break;
     }
   });
@@ -1046,6 +1099,7 @@
   /* Keep playing when the screen locks / the tab is backgrounded. Phones may
      briefly pause the element; we resume if the user still wanted playback. */
   document.addEventListener('visibilitychange', () => {
+    if (eqCtx && eqCtx.state !== 'running' && S.wantPlay) eqCtx.resume().catch(() => {});
     if (document.visibilityState === 'hidden') {
       updateMediaSession();
       if (S.wantPlay && S.cur && audio.paused) playAudio();

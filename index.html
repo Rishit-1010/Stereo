@@ -106,6 +106,7 @@
     <symbol id="i-play" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
     <symbol id="i-file" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
     <symbol id="i-caret" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/></symbol>
@@ -207,7 +208,6 @@
           <div class="np-art">
             <div class="np-glow" aria-hidden="true"></div>
             <div class="np-art-img" id="npArt" role="img" aria-label="Album art"></div>
-            <div class="np-eq" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
           </div>
 
           <div class="np-info">
@@ -244,6 +244,7 @@
               <input class="range vol" type="range" min="0" max="100" value="90" step="1" aria-label="Volume" data-vol>
               <span class="grow"></span>
               <button type="button" class="ext ext-speed" data-act="speed" aria-label="Playback speed" title="Playback speed"><svg class="ico"><use href="#i-speed"/></svg></button>
+              <button type="button" class="ext ext-eq" data-act="eq" aria-label="Equalizer" title="Equalizer (bass / treble)"><svg class="ico"><use href="#i-sliders"/></svg></button>
               <button type="button" class="ext ext-shuffle" data-act="shuffle" aria-label="Shuffle" title="Shuffle" aria-pressed="false"><svg class="ico"><use href="#i-shuffle"/></svg></button>
               <button type="button" class="ext ext-repeat" data-act="repeat" aria-label="Repeat mode" title="Repeat: off" data-repeat-mode="off"><svg class="ico rep-ico"><use href="#i-repeat"/></svg></button>
               <button type="button" class="ext ext-timer" data-act="timer" aria-label="Sleep timer"><svg class="ico"><use href="#i-clock"/></svg></button>
@@ -330,6 +331,18 @@
       <button class="start-btn" type="submit">Start</button>
     </form>
     <p class="form-note" id="sleepNote" hidden></p>
+  </div>
+</div>
+
+<!-- ============================== EQUALIZER ============================= -->
+<div class="modal" id="eqModal" hidden role="dialog" aria-modal="true" aria-labelledby="eqTitle">
+  <div class="sheet eq-sheet">
+    <button class="x-btn" type="button" data-close aria-label="Close"><svg class="ico"><use href="#i-x"/></svg></button>
+    <p class="eyebrow">EQUALIZER</p>
+    <h2 class="sheet-title" id="eqTitle">Bass, treble &amp; more</h2>
+    <div class="chips eq-presets" id="eqPresets"></div>
+    <div class="eq-bands" id="eqBands"></div>
+    <div class="speed-now eq-foot"><span id="eqNote">Flat — the original sound</span><button type="button" id="eqReset" hidden>Reset</button></div>
   </div>
 </div>
 
