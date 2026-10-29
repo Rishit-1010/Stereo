@@ -110,6 +110,13 @@
   const THEME_BY_ID = new Map(THEMES.map(t => [t.id, t]));
   const themeBg = t => (t.mode === 'light' ? '#ffffff' : '#000000');
   const curTheme = () => THEME_BY_ID.get(document.documentElement.getAttribute('data-theme')) || THEMES[0];
+  /* the theme the visitor picked (what is saved). Auto-change only ever shows other themes temporarily. */
+  const savedThemeId = () => { const id = store.get('theme', 'dark'); return THEME_BY_ID.has(id) ? id : THEMES[0].id; };
+
+  /* auto-change: while Now Playing is open and a song is playing, move to the next colour every AUTO_MS.
+     FADE_MS is how long the colours take to blend (keep it in step with --fade in style.css). */
+  const AUTO_MS = 25000, FADE_MS = 1800;
+  const AUTO = { on: !!store.get('autoTheme', false), timer: null };
 
   /* start loading a theme's images the moment it is picked (or hovered), kept on window so they stay decoded */
   const themePre = new Map();
@@ -129,11 +136,18 @@
         `<span class="sw" style="--sw-bg:${themeBg(t)};--sw-ac:${t.accent}"></span>` +
         `<span class="tm-label">${esc(t.label)}</span><svg class="ico tm-check" aria-hidden="true"><use href="#i-check"/></svg></button>`
       ).join('') + '</div>';
-    themePop.innerHTML = '<p class="tm-title">Choose a theme</p>' + group('Dark', 'dark') + group('Light', 'light');
+    themePop.innerHTML = '<p class="tm-title">Choose a theme</p>' + group('Dark', 'dark') + group('Light', 'light') +
+      '<div class="tm-auto-wrap"><button type="button" class="tm-auto" id="autoThemeBtn" role="switch" aria-checked="false">' +
+      '<span class="tm-auto-text"><span class="tm-auto-label">Auto-change theme</span>' +
+      '<span class="tm-auto-sub">In Now Playing, every ' + Math.round(AUTO_MS / 1000) + ' s</span></span>' +
+      '<span class="tm-switch" aria-hidden="true"></span></button></div>';
   }
   buildThemeMenu();
+  function syncAutoUI() { const b = $('#autoThemeBtn'); if (b) b.setAttribute('aria-checked', String(AUTO.on)); }
+  syncAutoUI();
 
-  function applyTheme(id) {
+  /* temp = true: a theme shown by auto-change. It is not saved, and the menu keeps ticking the theme the visitor picked. */
+  function applyTheme(id, temp) {
     const t = THEME_BY_ID.get(id) || THEMES[0];
     document.documentElement.setAttribute('data-theme', t.id);
     const m = $('meta[name="theme-color"]');
@@ -144,8 +158,9 @@
     $('#themeName').textContent = t.label;
     themeBtn.title = 'Theme: ' + t.label;
     themeBtn.setAttribute('aria-label', 'Choose theme. Current theme: ' + t.label);
-    $$('.tm-opt', themePop).forEach(o => o.setAttribute('aria-selected', String(o.dataset.themeId === t.id)));
-    updateMediaSession();
+    const marked = temp ? savedThemeId() : t.id;
+    $$('.tm-opt', themePop).forEach(o => o.setAttribute('aria-selected', String(o.dataset.themeId === marked)));
+    if (!temp) updateMediaSession();
   }
 
   function placeThemePop() {
@@ -164,9 +179,11 @@
       const sel = themePop.querySelector('.tm-opt[aria-selected="true"]') || themePop.querySelector('.tm-opt');
       if (sel) sel.focus({ preventScroll: true });
     }
+    syncAutoTheme(); /* auto-change waits while the menu is open */
   }
   themeBtn.addEventListener('click', () => setThemeMenu(themePop.hidden));
   themePop.addEventListener('click', e => {
+    if (e.target.closest('.tm-auto')) { setAutoTheme(!AUTO.on); return; } /* the menu stays open */
     const b = e.target.closest('.tm-opt'); if (!b) return;
     applyTheme(b.dataset.themeId); store.set('theme', b.dataset.themeId);
     setThemeMenu(false); themeBtn.focus({ preventScroll: true });
@@ -181,7 +198,7 @@
     if (themePop.hidden) return;
     if (e.key === 'Escape') { e.preventDefault(); setThemeMenu(false); themeBtn.focus({ preventScroll: true }); return; }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      const opts = $$('.tm-opt', themePop); if (!opts.length) return;
+      const opts = $$('.tm-opt, .tm-auto', themePop); if (!opts.length) return;
       e.preventDefault();
       const i = opts.indexOf(document.activeElement);
       const next = e.key === 'ArrowDown' ? (i + 1) % opts.length : (i <= 0 ? opts.length - 1 : i - 1);
@@ -189,6 +206,68 @@
     }
   });
   window.addEventListener('resize', () => { if (!themePop.hidden) placeThemePop(); });
+
+  /* ------------------------- auto-change theme ---------------------------- */
+  /* Runs only while: the switch is on, Now Playing is open, a song is playing, the tab is visible and the theme menu
+     is closed. It cycles through the themes of the current mode (dark stays dark, light stays light, so there is
+     never a sudden flash between the two). Nothing is saved: leaving Now Playing, or switching it off, fades back
+     to the theme the visitor picked. */
+  const autoCanRun = () => AUTO.on && S.view === 'np' && !audio.paused && document.visibilityState === 'visible' && themePop.hidden;
+
+  function nextAutoTheme() {
+    const cur = curTheme();
+    const pool = THEMES.filter(t => t.mode === cur.mode);
+    return pool[(pool.indexOf(cur) + 1) % pool.length];
+  }
+
+  /* put the old logo / cover on top and fade it out, so the images blend like the colours do */
+  function crossfadeImages(from) {
+    [[$('#npArt'), from.files[2]], [$('.logo-img'), from.files[0]]].forEach(([el, file]) => {
+      if (!el || !file) return;
+      el.style.setProperty('--xf-img', 'url("' + REPO_RAW + file + '")');
+      el.classList.remove('xf'); void el.offsetWidth; el.classList.add('xf');
+      clearTimeout(el._xf);
+      el._xf = setTimeout(() => el.classList.remove('xf'), FADE_MS + 150);
+    });
+  }
+
+  let fadeTimer;
+  function fadeTo(id, temp) {
+    const from = curTheme();
+    if (from.id === id) return;
+    const root = document.documentElement;
+    root.classList.add('theme-fading'); /* switched on in the same frame as the new colours, so they blend */
+    crossfadeImages(from);
+    applyTheme(id, temp);
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(() => root.classList.remove('theme-fading'), FADE_MS + 150);
+  }
+
+  function autoTick() {
+    if (!autoCanRun()) { syncAutoTheme(); return; }
+    fadeTo(nextAutoTheme().id, true);
+    preloadTheme(nextAutoTheme()); /* have the one after that ready well before it is needed */
+  }
+
+  /* call whenever something that decides "should it run?" changes */
+  function syncAutoTheme() {
+    const run = autoCanRun();
+    if (run && !AUTO.timer) {
+      preloadTheme(nextAutoTheme());
+      AUTO.timer = setInterval(autoTick, AUTO_MS);
+    } else if (!run && AUTO.timer) {
+      clearInterval(AUTO.timer); AUTO.timer = null;
+    }
+    /* switched off, or left Now Playing: go back to the visitor's own theme (paused / hidden just waits) */
+    if ((!AUTO.on || S.view !== 'np') && curTheme().id !== savedThemeId()) fadeTo(savedThemeId(), false);
+  }
+
+  function setAutoTheme(on) {
+    AUTO.on = !!on;
+    store.set('autoTheme', AUTO.on);
+    syncAutoUI();
+    syncAutoTheme();
+  }
 
   /* ------------------------------ list view ------------------------------- */
   function visibleSongs() {
@@ -382,6 +461,7 @@
     $('#npView').hidden = v !== 'np';
     syncNav();
     if (v === 'np' && push !== false) { try { history.pushState({ np: 1 }, ''); } catch (e) {} }
+    syncAutoTheme();
   }
   window.addEventListener('popstate', () => { if (S.view === 'np') showView('list', false); closeSidebar(); });
 
@@ -749,11 +829,13 @@
     }
     startRaf(); updateMediaSession();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
+    syncAutoTheme();
   });
   audio.addEventListener('pause', () => {
     coverSettle();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    syncAutoTheme();
   });
   audio.addEventListener('ended', () => {
     if (S.repeatMode === 'one') {
@@ -1099,6 +1181,7 @@
   /* Keep playing when the screen locks / the tab is backgrounded. Phones may
      briefly pause the element; we resume if the user still wanted playback. */
   document.addEventListener('visibilitychange', () => {
+    syncAutoTheme(); /* auto-change stops while the tab is hidden and starts again when it comes back */
     if (eqCtx && eqCtx.state !== 'running' && S.wantPlay) eqCtx.resume().catch(() => {});
     if (document.visibilityState === 'hidden') {
       updateMediaSession();
@@ -1707,6 +1790,7 @@
       recent: S.recent,
       settings: {
         theme: store.get('theme', 'dark'),
+        autoTheme: AUTO.on,
         vol: S.vol,
         shuffle: S.shuffle,
         repeatMode: S.repeatMode,
@@ -1759,6 +1843,7 @@
         }
         if (data.settings) {
           if (data.settings.theme) { applyTheme(data.settings.theme); store.set('theme', data.settings.theme); }
+          if (data.settings.autoTheme != null) setAutoTheme(!!data.settings.autoTheme);
           if (data.settings.vol != null) { S.vol = Number(data.settings.vol); applyVolume(); }
           if (data.settings.repeatMode) { applyRepeatMode(data.settings.repeatMode); }
           if (data.settings.speed != null) { applySpeed(data.settings.speed); }

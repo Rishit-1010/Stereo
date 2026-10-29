@@ -18,6 +18,143 @@
   --sb-w: 249px;
 }
 
+/* ------------------------- auto-change theme (fade) ---------------------- */
+/* Every theme colour is registered as a real <color>, so the browser can blend it from the old theme to the new
+   one. Without this a custom property just flips. The fade only runs while html has .theme-fading (added by
+   script.js for the auto-change and for restoring the saved theme); picking a theme by hand stays instant.
+   Browsers without @property support simply switch instantly. Keep --fade in step with FADE_MS in script.js. */
+@property --bg { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --bg-np { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --side { syntax: '<color>'; inherits: true; initial-value: #050800; }
+@property --accent { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --on-accent { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --text { syntax: '<color>'; inherits: true; initial-value: #ededed; }
+@property --text-strong { syntax: '<color>'; inherits: true; initial-value: #fff; }
+@property --muted { syntax: '<color>'; inherits: true; initial-value: #bfbfbf; }
+@property --label { syntax: '<color>'; inherits: true; initial-value: #c4c4c4; }
+@property --label-2 { syntax: '<color>'; inherits: true; initial-value: #9a9a9a; }
+@property --item { syntax: '<color>'; inherits: true; initial-value: #0f0f0f; }
+@property --item-active { syntax: '<color>'; inherits: true; initial-value: #1f2e00; }
+@property --item-active-line { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --item-active-text { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --row { syntax: '<color>'; inherits: true; initial-value: #070a00; }
+@property --row-playing { syntax: '<color>'; inherits: true; initial-value: #0c1200; }
+@property --row-line { syntax: '<color>'; inherits: true; initial-value: transparent; }
+@property --row-playing-line { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --row-title { syntax: '<color>'; inherits: true; initial-value: #fff; }
+@property --row-title-playing { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --pb-bg { syntax: '<color>'; inherits: true; initial-value: #1a2600; }
+@property --pb-fg { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --pbp-bg { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --pbp-fg { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --bar { syntax: '<color>'; inherits: true; initial-value: #111a00; }
+@property --bar-line { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --circle-fill { syntax: '<color>'; inherits: true; initial-value: #050505; }
+@property --circle-line { syntax: '<color>'; inherits: true; initial-value: rgba(171, 255, 0, .6); }
+@property --circle-fg { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --search-bg { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --head-line { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --avatar-bg { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --avatar-fg { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --ctl { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --ext { syntax: '<color>'; inherits: true; initial-value: #bfbfbf; }
+@property --play-big-bg { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --play-big-fg { syntax: '<color>'; inherits: true; initial-value: #000; }
+@property --scroll { syntax: '<color>'; inherits: true; initial-value: #2a3a00; }
+@property --overlay { syntax: '<color>'; inherits: true; initial-value: rgba(0, 0, 0, .62); }
+@property --sheet { syntax: '<color>'; inherits: true; initial-value: #070d04; }
+@property --sheet-line { syntax: '<color>'; inherits: true; initial-value: rgba(171, 255, 0, .16); }
+@property --chip { syntax: '<color>'; inherits: true; initial-value: #0f160a; }
+@property --chip-line { syntax: '<color>'; inherits: true; initial-value: #1c2a10; }
+@property --input { syntax: '<color>'; inherits: true; initial-value: #0f160a; }
+@property --input-line { syntax: '<color>'; inherits: true; initial-value: #243018; }
+@property --input-ph { syntax: '<color>'; inherits: true; initial-value: #4b5740; }
+@property --sheet-text { syntax: '<color>'; inherits: true; initial-value: #fff; }
+@property --sheet-eyebrow { syntax: '<color>'; inherits: true; initial-value: #9a9a9a; }
+@property --sheet-muted { syntax: '<color>'; inherits: true; initial-value: #bfbfbf; }
+@property --rule { syntax: '<color>'; inherits: true; initial-value: #162008; }
+@property --toast-bg { syntax: '<color>'; inherits: true; initial-value: #111a00; }
+@property --toast-fg { syntax: '<color>'; inherits: true; initial-value: #ededed; }
+@property --heart-on { syntax: '<color>'; inherits: true; initial-value: #abff00; }
+@property --track-player { syntax: '<color>'; inherits: true; initial-value: #e6e7ff; }
+@property --coll-label { syntax: '<color>'; inherits: true; initial-value: #c2c2c2; }
+@property --coll-title { syntax: '<color>'; inherits: true; initial-value: #ededed; }
+@property --search-line { syntax: '<color>'; inherits: true; initial-value: #ededed; }
+@property --search-text { syntax: '<color>'; inherits: true; initial-value: #ededed; }
+@property --track { syntax: '<color>'; inherits: true; initial-value: #2e2e2e; }
+
+:root { --fade: 1.8s; }
+:root.theme-fading {
+  transition:
+    --bg var(--fade) ease,
+    --bg-np var(--fade) ease,
+    --side var(--fade) ease,
+    --accent var(--fade) ease,
+    --on-accent var(--fade) ease,
+    --text var(--fade) ease,
+    --text-strong var(--fade) ease,
+    --muted var(--fade) ease,
+    --label var(--fade) ease,
+    --label-2 var(--fade) ease,
+    --item var(--fade) ease,
+    --item-active var(--fade) ease,
+    --item-active-line var(--fade) ease,
+    --item-active-text var(--fade) ease,
+    --row var(--fade) ease,
+    --row-playing var(--fade) ease,
+    --row-line var(--fade) ease,
+    --row-playing-line var(--fade) ease,
+    --row-title var(--fade) ease,
+    --row-title-playing var(--fade) ease,
+    --pb-bg var(--fade) ease,
+    --pb-fg var(--fade) ease,
+    --pbp-bg var(--fade) ease,
+    --pbp-fg var(--fade) ease,
+    --bar var(--fade) ease,
+    --bar-line var(--fade) ease,
+    --circle-fill var(--fade) ease,
+    --circle-line var(--fade) ease,
+    --circle-fg var(--fade) ease,
+    --search-bg var(--fade) ease,
+    --head-line var(--fade) ease,
+    --avatar-bg var(--fade) ease,
+    --avatar-fg var(--fade) ease,
+    --ctl var(--fade) ease,
+    --ext var(--fade) ease,
+    --play-big-bg var(--fade) ease,
+    --play-big-fg var(--fade) ease,
+    --scroll var(--fade) ease,
+    --overlay var(--fade) ease,
+    --sheet var(--fade) ease,
+    --sheet-line var(--fade) ease,
+    --chip var(--fade) ease,
+    --chip-line var(--fade) ease,
+    --input var(--fade) ease,
+    --input-line var(--fade) ease,
+    --input-ph var(--fade) ease,
+    --sheet-text var(--fade) ease,
+    --sheet-eyebrow var(--fade) ease,
+    --sheet-muted var(--fade) ease,
+    --rule var(--fade) ease,
+    --toast-bg var(--fade) ease,
+    --toast-fg var(--fade) ease,
+    --heart-on var(--fade) ease,
+    --track-player var(--fade) ease,
+    --coll-label var(--fade) ease,
+    --coll-title var(--fade) ease,
+    --search-line var(--fade) ease,
+    --search-text var(--fade) ease,
+    --track var(--fade) ease;
+}
+/* the logo and the big cover are images, so they cross-fade: script.js puts the old image on top (--xf-img) and fades it out */
+.np-art-img::before, .logo-img::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: var(--xf-img) center / cover no-repeat;
+}
+.logo-img::before { background-position: left center; background-size: contain; }
+.np-art-img.xf::before, .logo-img.xf::before { animation: xf-out var(--fade) ease forwards; }
+@keyframes xf-out { from { opacity: 1; } to { opacity: 0; } }
+
 /* ---------- DARK (default) ---------- */
 :root, :root[data-theme="dark"] {
   color-scheme: dark;
@@ -884,6 +1021,7 @@ input { font: inherit; color: inherit; }
 .brand { display: flex; align-items: flex-start; justify-content: space-between; margin: 20px 0 0 15px; }
 .logo { position: relative; display: block; width: 180px; height: 74px; flex: none; }
 .logo-img {
+  position: relative;
   display: block; width: 100%; height: 100%;
   background: var(--logo) left center / contain no-repeat;
   transition: transform .25s var(--ease), opacity .2s;
@@ -1025,6 +1163,25 @@ input { font: inherit; color: inherit; }
 .tm-opt .tm-label { flex: 1; min-width: 0; }
 .tm-opt .tm-check { width: 18px; height: 18px; stroke-width: 2.4; opacity: 0; }
 .tm-opt[aria-selected="true"] .tm-check { opacity: 1; }
+/* "Auto-change" switch at the bottom of the theme menu */
+.tm-auto-wrap { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--rule); }
+.tm-auto {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 9px 10px; border-radius: 12px; text-align: left;
+  font: 500 15px/1.2 var(--f-karla); color: var(--sheet-text); transition: background .15s, border-color .15s;
+}
+.tm-auto:hover, .tm-auto:focus-visible { background: var(--chip); outline: none; }
+.tm-auto-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.tm-auto-sub { font: 400 12px/1.25 var(--f-karla); opacity: .7; }
+.tm-switch {
+  flex: none; position: relative; width: 38px; height: 22px; border-radius: 999px;
+  background: var(--chip); border: 1px solid var(--sheet-line); transition: background .2s, border-color .2s;
+}
+.tm-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--sheet-text); opacity: .6; transition: transform .2s var(--ease), background .2s, opacity .2s;
+}
+.tm-auto[aria-checked="true"] .tm-switch { background: var(--accent); border-color: var(--accent); }
+.tm-auto[aria-checked="true"] .tm-switch::after { transform: translateX(16px); background: var(--on-accent); opacity: 1; }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; background: var(--avatar-bg); color: var(--avatar-fg);
   display: grid; place-items: center; font: 600 16px/1 var(--f-park); flex: none; padding-top: 1px;
@@ -1742,6 +1899,9 @@ input { font: inherit; color: inherit; }
   .tm-opt { gap: 10px; padding: 12px; min-height: 50px; border: 1px solid var(--chip-line); background: var(--chip); font-size: 14px; line-height: 1.15; }
   .tm-opt[aria-selected="true"] { border-color: var(--accent); }
   .tm-opt .tm-check { display: none; }
+  .tm-auto-wrap { margin-top: 10px; padding-top: 0; border-top: 0; }
+  .tm-auto { padding: 12px; min-height: 56px; border: 1px solid var(--chip-line); background: var(--chip); font-size: 14px; }
+  .tm-auto[aria-checked="true"] { border-color: var(--accent); }
   @keyframes pop-fade { from { opacity: 0; } to { opacity: 1; } }
 
   /* modals become bottom sheets */
