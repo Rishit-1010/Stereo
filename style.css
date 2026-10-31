@@ -12,7 +12,7 @@
 :root {
   --f-anta: 'Anta', 'Trebuchet MS', sans-serif;
   --f-karla: 'Karla', system-ui, sans-serif;
-  --f-mono: 'Roboto Mono', ui-monospace, monospace;
+  --f-mono: 'Anta', 'Trebuchet MS', sans-serif;
   --f-anton: 'Anton', Impact, 'Arial Narrow', sans-serif;
   --f-quick: 'Quicksand', system-ui, sans-serif;
   --f-park: 'Parkinsans', 'Karla', system-ui, sans-serif;
@@ -231,7 +231,7 @@ input { font: inherit; color: inherit; }
 }
 .install-steps li::before {
   content: counter(step); flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--accent); color: var(--on-accent); font: 700 12px/1 var(--f-mono);
+  background: var(--accent); color: var(--on-accent); font: 700 12px/1 var(--f-anta);
 }
 .pl-pick-hint { margin: 6px 0 0; font: 400 13px/1.45 var(--f-karla); color: var(--muted); }
 .pl-song-list { max-height: min(42vh, 320px); overflow-y: auto; display: grid; gap: 8px; margin: 8px 0 16px; padding-right: 4px; }
@@ -244,7 +244,7 @@ input { font: inherit; color: inherit; }
 .pl-song-opt.on { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 18%, transparent); }
 .pl-song-opt .check {
   width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-2); flex: none; display: grid; place-items: center;
-  font: 700 11px/1 var(--f-mono); color: transparent;
+  font: 700 11px/1 var(--f-anta); color: transparent;
 }
 .pl-song-opt.on .check { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .pl-targets { display: grid; gap: 10px; margin: 12px 0 8px; }
@@ -395,7 +395,6 @@ input { font: inherit; color: inherit; }
 .is-playing .row.playing .bars i { animation: eq-bar 1s ease-in-out infinite; }
 .is-playing .row.playing .bars i:nth-child(2) { animation-duration: .74s; animation-delay: -.3s; }
 .is-playing .row.playing .bars i:nth-child(3) { animation-duration: 1.15s; animation-delay: -.6s; }
-.is-playing .row.playing .bars i:nth-child(4) { animation-duration: .88s; animation-delay: -.15s; }
 .row .thumb { width: 46px; height: 46px; margin-right: 16px; transition: transform .25s var(--ease); }
 .row .title { flex: 1; min-width: 0; font: 400 17px/1.25 var(--f-anta); color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color .2s; }
 .row.playing .title { color: var(--accent); }

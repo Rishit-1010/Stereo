@@ -325,7 +325,7 @@
     const isOffline = S.offline.has(s.id);
     return `<li class="row${playing ? ' playing' : ''}${canDrag ? ' can-drag' : ''}" data-id="${s.id}" tabindex="0" role="button" aria-label="Play ${esc(s.title)}">` +
       (canDrag ? `<span class="grip" aria-hidden="true" title="Drag to reorder"><svg class="ico"><use href="#i-grip"/></svg></span>` : '') +
-      `<span class="num"><b>${pad2(i + 1)}</b><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span>` +
+      `<span class="num"><b>${pad2(i + 1)}</b><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span></span>` +
       `<span class="thumb" aria-hidden="true"></span>` +
       `<span class="meta"><span class="title">${esc(s.title)}</span><span class="genre">${esc(s.genre)}</span></span>` +
       `<span class="dur">${durStr}</span>` +
