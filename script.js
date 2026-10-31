@@ -890,20 +890,28 @@
   audio.addEventListener('loadstart', () => { rEnv = 0; });
   REDUCED.addEventListener && REDUCED.addEventListener('change', () => { reactRelease(); reactSync(); });
 
-  const reactBtn = $('#reactBtn');
+  const reactBtn = $('#reactBtn'), npPulse = $('#npPulse');
   function syncReactBtn() {
-    if (!reactBtn) return;
-    reactBtn.setAttribute('aria-checked', String(S.react));
-    $('span', reactBtn).textContent = 'Steady pulse cover: ' + (S.react ? 'On' : 'Off');
+    if (reactBtn) {
+      reactBtn.setAttribute('aria-checked', String(S.react));
+      $('span', reactBtn).textContent = 'Steady pulse cover: ' + (S.react ? 'On' : 'Off');
+    }
+    if (npPulse) {
+      npPulse.setAttribute('aria-pressed', String(S.react));
+      const t = 'Pulse cover: ' + (S.react ? 'On' : 'Off');
+      npPulse.title = t; npPulse.setAttribute('aria-label', t);
+    }
   }
   syncReactBtn();
-  if (reactBtn) reactBtn.addEventListener('click', () => {
+  function togglePulse() {
     S.react = !S.react; store.set('react', S.react);
     document.body.classList.toggle('no-react', !S.react);
     syncReactBtn();
     if (S.react) { if (!audio.paused) eqApply(); reactSync(); } else reactRelease();
     toast(S.react ? 'Steady pulse cover on' : 'Steady pulse cover off', 1800);
-  });
+  }
+  if (reactBtn) reactBtn.addEventListener('click', togglePulse);
+  if (npPulse) npPulse.addEventListener('click', togglePulse);
   function syncEqBtn() { $$('.ext-eq').forEach(b => b.classList.toggle('active', !eqFlat())); }
   const fmtDb = v => (v > 0 ? '+' : '') + v + ' dB';
   function renderEq() {

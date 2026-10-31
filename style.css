@@ -433,6 +433,8 @@ body.is-sorting { user-select: none; -webkit-user-select: none; }
 }
 .np-scroll { position: relative; z-index: 1; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-bottom: 40px; }
 .np-top { display: flex; align-items: center; justify-content: space-between; width: min(1040px, calc(100% - 64px)); margin: 28px auto 0; height: 42px; }
+.circle-btn#npPulse[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+.circle-btn#npPulse[aria-pressed="false"] { opacity: .6; }
 .np-actions { display: flex; gap: 10px; margin-left: auto; justify-content: flex-end; }
 .np-body { display: flex; align-items: center; justify-content: center; gap: clamp(36px, 7vw, 110px); width: min(1040px, calc(100% - 64px)); margin: clamp(48px, 9vh, 84px) auto 0; }
 
