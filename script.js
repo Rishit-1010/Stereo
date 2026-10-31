@@ -141,8 +141,8 @@
   function setFavicon(t) {
     const el = document.getElementById('favicon'); if (!el) return;
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='${tileOf(t)}'/><path transform='translate(49.5 50) scale(1.3) translate(-49.5 -50)' d='${GLYPH_D}' fill='${t.accent}'/></svg>`;
-    el.type = 'image/svg+xml';
-    el.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+    el.type = 'image/x-icon';
+    el.href = 'favicon.ico';
   }
   const THEME_BY_ID = new Map(THEMES.map(t => [t.id, t]));
   const themeBg = t => (t.mode === 'light' ? '#ffffff' : '#0a0a0a');
