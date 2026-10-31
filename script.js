@@ -28,10 +28,15 @@
   };
 
   /* ------------------------------- library -------------------------------- */
-  const REPO_RAW = 'https://raw.githubusercontent.com/Rishit-1010/Stereo/main/';
-  /* songs.js uses paths like tracks/X.mp3; inside the Android/desktop apps they are loaded from the website */
+  /* songs.js uses paths like tracks/X.mp3. window.TRACK_BASE (set in songs.js) says where the mp3 files really are.
+     Inside the Android/desktop apps relative paths are loaded from the website. */
   const SITE = 'https://rishit-1010.github.io/Stereo/';
-  const toUrl = u => (/^(https?:)?\/\//.test(u) || !(window.StereoAndroid || window.stereoDesktop)) ? u : SITE + u;
+  const TRACK_BASE = String(window.TRACK_BASE || '');
+  const toUrl = u => {
+    if (/^(https?:)?\/\//.test(u)) return u;
+    const p = TRACK_BASE ? TRACK_BASE.replace(/\/?$/, '/') + u.replace(/^tracks\//, '') : u;
+    return (/^(https?:)?\/\//.test(p) || !(window.StereoAndroid || window.stereoDesktop)) ? p : SITE + p;
+  };
   const defaults = (window.SONGS || []).map((s, i) => ({
     id: 'd' + String(i + 1).padStart(2, '0'),
     title: s.t, cat: s.c, genre: s.g,
@@ -89,26 +94,58 @@
   }
 
   /* ------------------------------- theme ---------------------------------- */
-  /* twelve themes: the original Dark (lime) + Light (navy), plus five extra dark and five extra light colours.
-     Their colours live in style.css; the logo + cover images of the extra ones are in the themes/ folder. */
-  const DARK_FILES = ['Logo.png', 'Cover.png', 'CoverBig.png'];
+  /* 18 themes. Each is just an accent colour + a mode; every other colour is derived from it in style.css.
+     The logo and covers are the original SVG shapes, painted with the accent (CSS masks) — there are no image files.
+     To add a theme: add one line here and one `[data-theme="id"] { --accent: ... }` line in style.css. */
   const THEMES = [
-    { id: 'dark',         label: 'Dark (Lime)',     mode: 'dark',  accent: '#abff00', files: DARK_FILES },
-    { id: 'dark-red',     label: 'Dark (Red)',      mode: 'dark',  accent: '#ff5252' },
-    { id: 'dark-yellow',  label: 'Dark (Yellow)',   mode: 'dark',  accent: '#f4ff00' },
-    { id: 'dark-blue',    label: 'Dark (Blue)',     mode: 'dark',  accent: '#5ccfff' },
-    { id: 'dark-violet',  label: 'Dark (Violet)',   mode: 'dark',  accent: '#c8a2ff' },
-    { id: 'dark-white',   label: 'Dark (White)',    mode: 'dark',  accent: '#ffffff' },
-    { id: 'light',        label: 'Light (Navy)',    mode: 'light', accent: '#000455', files: ['Logo1.png', 'Cover2.png', 'CoverBig1.png'] },
-    { id: 'light-maroon', label: 'Light (Maroon)',  mode: 'light', accent: '#620817' },
-    { id: 'light-green',  label: 'Light (Green)',   mode: 'light', accent: '#07482b' },
-    { id: 'light-yellow', label: 'Light (Yellow)',  mode: 'light', accent: '#6e4c00' },
-    { id: 'light-purple', label: 'Light (Purple)',  mode: 'light', accent: '#3b1074' },
-    { id: 'light-black',  label: 'Light (Black)',   mode: 'light', accent: '#000000' }
+    { id: 'dark',         label: 'Lime',    mode: 'dark',  accent: '#abff00' },
+    { id: 'dark-red',     label: 'Red',     mode: 'dark',  accent: '#ff5252' },
+    { id: 'dark-orange',  label: 'Orange',  mode: 'dark',  accent: '#ff9440' },
+    { id: 'dark-yellow',  label: 'Yellow',  mode: 'dark',  accent: '#f4ff00' },
+    { id: 'dark-mint',    label: 'Mint',    mode: 'dark',  accent: '#2dffb8' },
+    { id: 'dark-blue',    label: 'Blue',    mode: 'dark',  accent: '#5ccfff' },
+    { id: 'dark-violet',  label: 'Violet',  mode: 'dark',  accent: '#c8a2ff' },
+    { id: 'dark-pink',    label: 'Pink',    mode: 'dark',  accent: '#ff6fd0' },
+    { id: 'dark-white',   label: 'White',   mode: 'dark',  accent: '#ffffff' },
+    { id: 'light',        label: 'Navy',    mode: 'light', accent: '#000455' },
+    { id: 'light-maroon', label: 'Maroon',  mode: 'light', accent: '#620817' },
+    { id: 'light-rose',   label: 'Rose',    mode: 'light', accent: '#8e1d4f' },
+    { id: 'light-yellow', label: 'Gold',    mode: 'light', accent: '#6e4c00' },
+    { id: 'light-green',  label: 'Green',   mode: 'light', accent: '#07482b' },
+    { id: 'light-teal',   label: 'Teal',    mode: 'light', accent: '#00505c' },
+    { id: 'light-purple', label: 'Purple',  mode: 'light', accent: '#3b1074' },
+    { id: 'light-black',  label: 'Black',   mode: 'light', accent: '#000000' },
+    { id: 'light-rust',   label: 'Rust',    mode: 'light', accent: '#9a3412' }
   ];
-  THEMES.forEach(t => { if (!t.files) t.files = DARK_FILES.map(f => 'themes/' + t.id + '/' + f); });
+
+  /* The cover's note shape — the path from the original Cover.svg (100 x 100) */
+  const GLYPH_D = 'M44 75C40.975 75 38.3854 73.912 36.2313 71.7361C34.0771 69.5602 33 66.9444 33 63.8889C33 60.8333 34.0771 58.2176 36.2313 56.0417C38.3854 53.8657 40.975 52.7778 44 52.7778C45.0542 52.7778 46.0167 52.9167 46.8875 53.1944C47.8042 53.4259 48.675 53.7963 49.5 54.3056V25H66V36.1111H55V63.8889C55 66.9444 53.9229 69.5602 51.7687 71.7361C49.6146 73.912 47.025 75 44 75Z';
+  const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+  const mixHex = (a, b, k) => { const A = hexRgb(a), B = hexRgb(b); return '#' + A.map((v, i) => Math.round(v * k + B[i] * (1 - k)).toString(16).padStart(2, '0')).join(''); };
+  const tileOf = t => t.mode === 'light' ? mixHex(t.accent, '#ffffff', .24) : mixHex(t.accent, '#000000', .15);
+
+  /* lock-screen artwork + the browser-tab icon are drawn from the same shapes, in the current theme's colours */
+  const ART = {};
+  function buildArtwork(t) {
+    if (ART[t.id] !== undefined) return;
+    ART[t.id] = null;
+    try {
+      const c = document.createElement('canvas'); c.width = c.height = 512;
+      const g = c.getContext('2d'), r = 51;
+      g.fillStyle = tileOf(t);
+      g.beginPath(); g.moveTo(r, 0); g.arcTo(512, 0, 512, 512, r); g.arcTo(512, 512, 0, 512, r); g.arcTo(0, 512, 0, 0, r); g.arcTo(0, 0, 512, 0, r); g.closePath(); g.fill();
+      g.scale(5.12, 5.12); g.fillStyle = t.accent; g.fill(new Path2D(GLYPH_D));
+      c.toBlob(b => { if (b) { ART[t.id] = URL.createObjectURL(b); updateMediaSession(); } }, 'image/png');
+    } catch (e) {}
+  }
+  function setFavicon(t) {
+    const el = document.getElementById('favicon'); if (!el) return;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='${tileOf(t)}'/><path transform='translate(49.5 50) scale(1.3) translate(-49.5 -50)' d='${GLYPH_D}' fill='${t.accent}'/></svg>`;
+    el.type = 'image/svg+xml';
+    el.href = 'data:image/svg+xml,' + encodeURIComponent(svg);
+  }
   const THEME_BY_ID = new Map(THEMES.map(t => [t.id, t]));
-  const themeBg = t => (t.mode === 'light' ? '#ffffff' : '#000000');
+  const themeBg = t => (t.mode === 'light' ? '#ffffff' : '#0a0a0a');
   const curTheme = () => THEME_BY_ID.get(document.documentElement.getAttribute('data-theme')) || THEMES[0];
   /* the theme the visitor picked (what is saved). Auto-change only ever shows other themes temporarily. */
   const savedThemeId = () => { const id = store.get('theme', 'dark'); return THEME_BY_ID.has(id) ? id : THEMES[0].id; };
@@ -118,12 +155,8 @@
   const AUTO_MS = 25000, FADE_MS = 1800;
   const AUTO = { on: !!store.get('autoTheme', false), timer: null };
 
-  /* start loading a theme's images the moment it is picked (or hovered), kept on window so they stay decoded */
-  const themePre = new Map();
-  function preloadTheme(t) {
-    if (themePre.has(t.id)) return;
-    themePre.set(t.id, t.files.map(f => { const img = new Image(); img.decoding = 'async'; img.src = REPO_RAW + f; return img; }));
-  }
+  /* picking (or hovering) a theme warms up its lock-screen artwork */
+  function preloadTheme(t) { buildArtwork(t); }
 
   const themeBtn = $('#themeBtn'), themePop = $('#themeList'), themeScrim = $('#themeScrim');
   const phoneLayout = () => window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
@@ -155,12 +188,12 @@
     preloadTheme(t);
     /* trigger button shows the current theme */
     $('#themeSw').style.cssText = `--sw-bg:${themeBg(t)};--sw-ac:${t.accent}`;
-    $('#themeName').textContent = t.label;
+    $('#themeName').textContent = (t.mode === 'dark' ? 'Dark' : 'Light') + ' · ' + t.label;
     themeBtn.title = 'Theme: ' + t.label;
     themeBtn.setAttribute('aria-label', 'Choose theme. Current theme: ' + t.label);
     const marked = temp ? savedThemeId() : t.id;
     $$('.tm-opt', themePop).forEach(o => o.setAttribute('aria-selected', String(o.dataset.themeId === marked)));
-    if (!temp) updateMediaSession();
+    if (!temp) { setFavicon(t); updateMediaSession(); }
   }
 
   function placeThemePop() {
@@ -220,16 +253,8 @@
     return pool[(pool.indexOf(cur) + 1) % pool.length];
   }
 
-  /* put the old logo / cover on top and fade it out, so the images blend like the colours do */
-  function crossfadeImages(from) {
-    [[$('#npArt'), from.files[2]], [$('.logo-img'), from.files[0]]].forEach(([el, file]) => {
-      if (!el || !file) return;
-      el.style.setProperty('--xf-img', 'url("' + REPO_RAW + file + '")');
-      el.classList.remove('xf'); void el.offsetWidth; el.classList.add('xf');
-      clearTimeout(el._xf);
-      el._xf = setTimeout(() => el.classList.remove('xf'), FADE_MS + 150);
-    });
-  }
+  /* the logo and covers are masks painted with --accent, so they fade together with the colours: nothing to do here */
+  function crossfadeImages() {}
 
   let fadeTimer;
   function fadeTo(id, temp) {
@@ -300,7 +325,7 @@
     const isOffline = S.offline.has(s.id);
     return `<li class="row${playing ? ' playing' : ''}${canDrag ? ' can-drag' : ''}" data-id="${s.id}" tabindex="0" role="button" aria-label="Play ${esc(s.title)}">` +
       (canDrag ? `<span class="grip" aria-hidden="true" title="Drag to reorder"><svg class="ico"><use href="#i-grip"/></svg></span>` : '') +
-      `<span class="num">${pad2(i + 1)}</span>` +
+      `<span class="num"><b>${pad2(i + 1)}</b><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span>` +
       `<span class="thumb" aria-hidden="true"></span>` +
       `<span class="meta"><span class="title">${esc(s.title)}</span><span class="genre">${esc(s.genre)}</span></span>` +
       `<span class="dur">${durStr}</span>` +
@@ -333,7 +358,7 @@
     if (!pl) return;
     pl.songs = [...listEl.querySelectorAll('.row:not(.row-placeholder)')].map(r => r.dataset.id).filter(Boolean);
     savePlaylists();
-    $$('.row:not(.row-placeholder) .num', listEl).forEach((el, i) => { el.textContent = pad2(i + 1); });
+    $$('.row:not(.row-placeholder) .num', listEl).forEach((el, i) => { (el.firstElementChild || el).textContent = pad2(i + 1); });
     if (S.queue.length) setQueueFromView();
   }
 
@@ -739,7 +764,7 @@
   }
 
   /* Web Audio API visualizer */
-  let audioCtx = null, analyser = null, audioSrcNode = null, freqData = null;
+  let audioCtx = null, analyser = null, audioSrcNode = null, freqData = null, tempoAn = null, tempoData = null;
   /* ------------------------------ equalizer ------------------------------- */
   /* The Web Audio graph is only built once the equalizer is actually used (a non-flat setting), so
      with the default flat setting the audio plays natively exactly as before. */
@@ -762,7 +787,7 @@
   S.eq = eqGet();
   let eqCtx = null, eqFilters = null;
   const eqFlat = () => S.eq.every(v => v === 0);
-  const eqSameOrigin = () => { try { const u = audio.currentSrc || audio.src; return !u || u.startsWith('blob:') || new URL(u, location.href).origin === location.origin; } catch (e) { return true; } };
+  const eqSameOrigin = () => { try { const u = audio.currentSrc || audio.src; return !u || u.startsWith('blob:') || !!audio.crossOrigin || new URL(u, location.href).origin === location.origin; } catch (e) { return true; } };
   function eqBuild() {
     if (eqCtx) return true;
     if (!eqSameOrigin()) return false; /* a cross-origin file would go silent inside a Web Audio graph */
@@ -772,6 +797,14 @@
       eqCtx = new AC();
       const src = eqCtx.createMediaElementSource(audio);
       eqFilters = EQ_BANDS.map(b => { const f = eqCtx.createBiquadFilter(); f.type = b.type; f.frequency.value = b.f; if (b.type === 'peaking') f.Q.value = 1; f.gain.value = 0; return f; });
+      analyser = eqCtx.createAnalyser();
+      analyser.fftSize = 512;               /* fine enough to isolate the bass, still answers within ~12 ms */
+      analyser.smoothingTimeConstant = 0.3; /* light smoothing = snappier than the default 0.8 */
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      tempoAn = eqCtx.createAnalyser(); tempoAn.fftSize = 1024; tempoAn.smoothingTimeConstant = 0; /* raw, so note onsets stay sharp */
+      tempoData = new Uint8Array(tempoAn.frequencyBinCount);
+      src.connect(tempoAn);
+      src.connect(analyser);                /* a tap: it listens, the sound still goes src -> equalizer -> speakers */
       let node = src; eqFilters.forEach(f => { node.connect(f); node = f; });
       node.connect(eqCtx.destination);
       eqCtx.onstatechange = () => { if (eqCtx.state !== 'running' && S.wantPlay) eqCtx.resume().catch(() => {}); };
@@ -779,12 +812,98 @@
     } catch (e) { eqCtx = null; eqFilters = null; return false; }
   }
   function eqApply() {
-    if (!eqCtx && (eqFlat() || !eqBuild())) { syncEqBtn(); return; }
+    if (!eqCtx && ((eqFlat() && !S.react) || !eqBuild())) { syncEqBtn(); return; }
     eqFilters.forEach((f, i) => { f.gain.value = S.eq[i]; });
     if (eqCtx.state !== 'running') eqCtx.resume().catch(() => {});
     syncEqBtn();
+    reactSync();
   }
   function initVisualizer() { eqApply(); }
+
+  /* ------------------------ steady pulse cover + rings --------------------- */
+  /* THE COVER expands for 0.25 s, then contracts for 0.25 s (full cycle = COVER_PULSE_MS = 500 ms).
+     Rings launch every RING_MS (500 ms). Both ignore the song's bass / spectrum.
+       - the cover stays a circle and scales smoothly bigger → smaller → bigger;
+       - largest cover size comes from CSS (--pulse-max on .np-art). */
+  S.react = !!store.get('react', true);
+  document.body.classList.toggle('no-react', !S.react);
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const artWrap = $('.np-art'), artImg = $('#npArt'), plThumbEl = $('#plThumb');
+  const RING_MS = 500;
+  const COVER_PULSE_MS = 500; /* 0.25 s expand + 0.25 s contract */
+  let rLoop = 0, rEnv = 0, rLastT = 0, ringTimer = 0, pulseOrigin = 0;
+
+  /* how far the cover swells and how far the rings travel, as multiples of its resting size (from CSS per layout) */
+  let PULSE_MAX = 325 / 300, RING_END = 400 / 300;
+  function readSizes() {
+    if (!artWrap) return;
+    const cs = getComputedStyle(artWrap);
+    PULSE_MAX = parseFloat(cs.getPropertyValue('--pulse-max')) || PULSE_MAX;
+    RING_END = parseFloat(cs.getPropertyValue('--ring-end')) || RING_END;
+  }
+  window.addEventListener('resize', readSizes);
+
+  /* ---- rings: thin, steady, always the same size ---- */
+  function spawnRing() {
+    if (S.view !== 'np' || document.hidden || !artWrap || !artWrap.animate || artWrap.querySelectorAll('.beat-ring').length > 10) return;
+    const el = document.createElement('i'); el.className = 'beat-ring'; artWrap.appendChild(el);
+    const a = el.animate([{ transform: 'scale(.92)', opacity: .7 }, { transform: 'scale(' + RING_END + ')', opacity: 0 }], { duration: 2400, easing: 'linear', fill: 'both' });
+    a.onfinish = () => el.remove();
+  }
+  function ringsStart() {
+    if (ringTimer || REDUCED.matches || !S.react || audio.paused) return;
+    readSizes();
+    pulseOrigin = performance.now(); /* keep cover pulse locked to the first ring */
+    spawnRing();
+    ringTimer = setInterval(() => { if (!audio.paused) spawnRing(); }, RING_MS);
+  }
+  function ringsStop() { clearInterval(ringTimer); ringTimer = 0; }
+
+  /* ---- the cover (0.25 s expand, 0.25 s contract — circle stays circular) ---- */
+  const reactOn = () => S.react && !REDUCED.matches;
+  function reactSync() {
+    app.classList.toggle('has-analyser', reactOn());
+    readSizes();
+    ringsStart();
+    if (reactOn() && !audio.paused && !rLoop) { rLastT = 0; rLoop = requestAnimationFrame(reactFrame); }
+  }
+  function reactRelease() {
+    cancelAnimationFrame(rLoop); rLoop = 0; rEnv = 0;
+    ringsStop();
+    if (artImg) artImg.style.scale = '';
+    if (plThumbEl) plThumbEl.style.scale = '';
+    if (!reactOn()) app.classList.remove('has-analyser');
+  }
+  function reactFrame(now) {
+    rLoop = 0;
+    if (!reactOn() || audio.paused) { reactRelease(); return; }
+    rLoop = requestAnimationFrame(reactFrame);
+
+    /* triangle wave: 0→1 over first 0.25 s (expand), 1→0 over next 0.25 s (contract) */
+    const phase = ((now - pulseOrigin) % COVER_PULSE_MS + COVER_PULSE_MS) % COVER_PULSE_MS / COVER_PULSE_MS;
+    const e = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
+
+    rEnv = e; /* direct — smooth linear expand/contract, no thump envelope */
+    if (S.view === 'np') artImg.style.scale = String(1 + rEnv * (PULSE_MAX - 1));
+    else if (plThumbEl) plThumbEl.style.scale = String(1 + rEnv * 0.25);   /* the mini-player cover pulses too */
+  }
+  audio.addEventListener('loadstart', () => { rEnv = 0; });
+  REDUCED.addEventListener && REDUCED.addEventListener('change', () => { reactRelease(); reactSync(); });
+
+  const reactBtn = $('#reactBtn');
+  function syncReactBtn() {
+    if (!reactBtn) return;
+    reactBtn.setAttribute('aria-checked', String(S.react));
+    $('span', reactBtn).textContent = 'Steady pulse cover: ' + (S.react ? 'On' : 'Off');
+  }
+  syncReactBtn();
+  if (reactBtn) reactBtn.addEventListener('click', () => {
+    S.react = !S.react; store.set('react', S.react);
+    document.body.classList.toggle('no-react', !S.react);
+    syncReactBtn();
+    if (S.react) { if (!audio.paused) eqApply(); reactSync(); } else reactRelease();
+    toast(S.react ? 'Steady pulse cover on' : 'Steady pulse cover off', 1800);
+  });
   function syncEqBtn() { $$('.ext-eq').forEach(b => b.classList.toggle('active', !eqFlat())); }
   const fmtDb = v => (v > 0 ? '+' : '') + v + ' dB';
   function renderEq() {
@@ -820,6 +939,7 @@
     coverSpinStart();
     initVisualizer();
     app.classList.add('is-playing');
+    reactSync();
     if (S.cur) {
       if (S.recent[0] !== S.cur) {
         S.recent = [S.cur].concat(S.recent.filter(x => x !== S.cur)).slice(0, 40);
@@ -832,7 +952,7 @@
     syncAutoTheme();
   });
   audio.addEventListener('pause', () => {
-    coverSettle();
+    coverSettle(); reactRelease();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     syncAutoTheme();
@@ -851,6 +971,12 @@
   audio.addEventListener('error', () => {
     if (!audio.src) return;
     const s = libMap.get(S.cur);
+    if (audio.crossOrigin && !eqCtx && s && !s.triedNoCors) {
+      s.triedNoCors = true; audio.removeAttribute('crossorigin'); /* host sends no CORS headers: play it plainly */
+      audio.src = s.src; audio.load();
+      if (S.wantPlay) playAudio();
+      return;
+    }
     if (s && s.alt && !s.triedAlt) {
       /* main file missing: try the fallback link once */
       s.triedAlt = true; s.src = s.alt;
@@ -1007,7 +1133,7 @@
       const row = listEl.querySelector(`.row[data-id="${id}"]`);
       if (row) row.remove();
       if (!listEl.children.length) { emptyEl.textContent = EMPTY_MSG.liked; emptyEl.hidden = false; }
-      else $$('.row .num', listEl).forEach((n, i) => { n.textContent = pad2(i + 1); });
+      else $$('.row .num', listEl).forEach((n, i) => { (n.firstElementChild || n).textContent = pad2(i + 1); });
     }
     toast(on ? 'Added to Liked Songs' : 'Removed from Liked Songs', 1600);
   }
@@ -1129,22 +1255,14 @@
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return;
     const s = libMap.get(S.cur); if (!s) return;
-    const cover = absUrl(REPO_RAW + curTheme().files[2]); /* this theme's big cover */
-    const icon = absUrl('icon-512.png');
+    const art = ART[curTheme().id]; /* drawn from the cover SVG in this theme's colours (see buildArtwork) */
+    const icon = absUrl('icon.svg');
     try {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: s.title,
         artist: s.genre || 'Rishit’s Stereo',
         album: 'Rishit’s Stereo',
-        artwork: [
-          { src: icon, sizes: '96x96', type: 'image/png' },
-          { src: icon, sizes: '128x128', type: 'image/png' },
-          { src: icon, sizes: '192x192', type: 'image/png' },
-          { src: icon, sizes: '256x256', type: 'image/png' },
-          { src: icon, sizes: '384x384', type: 'image/png' },
-          { src: icon, sizes: '512x512', type: 'image/png' },
-          { src: cover, sizes: '350x350', type: 'image/png' }
-        ]
+        artwork: art ? [{ src: art, sizes: '512x512', type: 'image/png' }] : [{ src: icon, sizes: '512x512', type: 'image/svg+xml' }]
       });
       navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
     } catch (e) {}

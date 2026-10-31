@@ -4,13 +4,15 @@
    - audio: not intercepted (offline songs are played from the cache by script.js) */
 'use strict';
 
-const CACHE = 'stereo-v6';
+const CACHE = 'stereo-v7';
+/* offline songs are cached here (kept across shell updates) */
 const AUDIO_CACHE = 'stereo-audio-v1';
+const SCOPE_PATH = new URL(self.registration.scope).pathname;
 const SHELL = [
   './', './index.html', './style.css', './script.js', './songs.js', './manifest.webmanifest',
-  './icon-192.png', './icon-512.png', './apple-touch-icon.png'
+  './icon.svg', './icon-192.png', './icon-512.png', './apple-touch-icon.png'
 ];
-const MEDIA_HOSTS = ['raw.githubusercontent.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
+const MEDIA_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -23,7 +25,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== AUDIO_CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('stereo-') && k !== AUDIO_CACHE && k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -69,6 +71,7 @@ self.addEventListener('fetch', event => {
   if (/\.(mp3|m4a|aac|wav|ogg|opus)$/i.test(url.pathname) || url.pathname.includes('/tracks/') || url.pathname.includes('/releases/download/')) return;
 
   if (url.origin === self.location.origin) {
+    if (!url.pathname.startsWith(SCOPE_PATH)) return; /* e.g. the Stereo site's mp3 files */
     event.respondWith(
       fetch(req)
         .then(res => {
