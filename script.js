@@ -821,7 +821,7 @@
   function initVisualizer() { eqApply(); }
 
   /* ------------------------ steady pulse cover + rings --------------------- */
-  /* THE COVER expands for 0.25 s, then contracts for 0.25 s (full cycle = COVER_PULSE_MS = 500 ms).
+  /* THE COVER expands for 0.5 s, then contracts for 0.5 s (full cycle = COVER_PULSE_MS = 1000 ms).
      Rings launch every RING_MS (500 ms). Both ignore the song's bass / spectrum.
        - the cover stays a circle and scales smoothly bigger → smaller → bigger;
        - largest cover size comes from CSS (--pulse-max on .np-art). */
@@ -830,7 +830,7 @@
   const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
   const artWrap = $('.np-art'), artImg = $('#npArt'), plThumbEl = $('#plThumb');
   const RING_MS = 500;
-  const COVER_PULSE_MS = 500; /* 0.25 s expand + 0.25 s contract */
+  const COVER_PULSE_MS = 1000; /* 0.5 s expand + 0.5 s contract */
   let rLoop = 0, rEnv = 0, rLastT = 0, ringTimer = 0, pulseOrigin = 0;
 
   /* how far the cover swells and how far the rings travel, as multiples of its resting size (from CSS per layout) */
@@ -859,7 +859,7 @@
   }
   function ringsStop() { clearInterval(ringTimer); ringTimer = 0; }
 
-  /* ---- the cover (0.25 s expand, 0.25 s contract — circle stays circular) ---- */
+  /* ---- the cover (0.5 s expand, 0.5 s contract — circle stays circular) ---- */
   const reactOn = () => S.react && !REDUCED.matches;
   function reactSync() {
     app.classList.toggle('has-analyser', reactOn());
@@ -879,7 +879,7 @@
     if (!reactOn() || audio.paused) { reactRelease(); return; }
     rLoop = requestAnimationFrame(reactFrame);
 
-    /* triangle wave: 0→1 over first 0.25 s (expand), 1→0 over next 0.25 s (contract) */
+    /* triangle wave: 0→1 over first 0.5 s (expand), 1→0 over next 0.5 s (contract) */
     const phase = ((now - pulseOrigin) % COVER_PULSE_MS + COVER_PULSE_MS) % COVER_PULSE_MS / COVER_PULSE_MS;
     const e = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
 

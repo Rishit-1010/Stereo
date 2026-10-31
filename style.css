@@ -436,8 +436,8 @@ body.is-sorting { user-select: none; -webkit-user-select: none; }
 .np-actions { display: flex; gap: 10px; margin-left: auto; justify-content: flex-end; }
 .np-body { display: flex; align-items: center; justify-content: center; gap: clamp(36px, 7vw, 110px); width: min(1040px, calc(100% - 64px)); margin: clamp(48px, 9vh, 84px) auto 0; }
 
-/* the cover: a solid round disc with the note on it. It rests at 300px (200px on phones), expands for 0.25 s then contracts for 0.25 s, and the rings reach 400px.
-   script.js scales only .np-art-img on a 500 ms cycle (0.25 s up, 0.25 s down); the glow is a steady layer behind it. */
+/* the cover: a solid round disc with the note on it. It rests at 300px (200px on phones), expands for 0.5 s then contracts for 0.5 s, and the rings reach 400px.
+   script.js scales only .np-art-img on a 1000 ms cycle (0.5 s up, 0.5 s down); the glow is a steady layer behind it. */
 .np-art { --pulse-max: 1.08333; --ring-end: 1.33333; position: relative; isolation: isolate; flex: 0 0 300px; width: 300px; }
 /* the rings are wider than the cover, so keep the text and buttons above them */
 .np-top, .np-info { position: relative; z-index: 1; }
