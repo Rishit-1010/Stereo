@@ -1027,3 +1027,14 @@ body.no-react .is-playing .np-glow {
   .beat-ring { display: none; }
   .is-playing .np-art-img, .is-playing .pl-left .thumb, .is-playing .ctl-play, .is-playing .row.playing .rplay { animation: none !important; filter: none; }
 }
+
+/* ------------------------------ song change transition ------------------------------ */
+@keyframes swap-in-cover { 0% { opacity: 0; translate: 0 18px; filter: blur(8px); } 100% { opacity: 1; translate: 0 0; filter: blur(0); } }
+@keyframes swap-in-text { 0% { opacity: 0; translate: 22px 0; filter: blur(4px); } 100% { opacity: 1; translate: 0 0; filter: blur(0); } }
+@keyframes swap-in-pop { 0% { opacity: .2; scale: .82; } 60% { scale: 1.06; } 100% { opacity: 1; scale: 1; } }
+.np-art.song-swap { animation: swap-in-cover .6s var(--ease) both; }
+.np-info.song-swap, .pl-meta.song-swap { animation: swap-in-text .55s var(--ease) both; }
+.pl-left .thumb.song-swap { animation: swap-in-pop .5s var(--ease) both; }
+.row.playing { animation: row-flash .9s var(--ease); }
+@keyframes row-flash { 0% { background: color-mix(in srgb, var(--accent) 28%, transparent); } 100% { background: transparent; } }
+@media (prefers-reduced-motion: reduce) { .song-swap, .row.playing { animation: none !important; } }

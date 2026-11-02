@@ -812,7 +812,9 @@
     } catch (e) { eqCtx = null; eqFilters = null; return false; }
   }
   function eqApply() {
-    if (!eqCtx && ((eqFlat() && !S.react) || !eqBuild())) { syncEqBtn(); return; }
+    /* The steady pulse never listens to the audio, so Web Audio is built only when the equalizer is really used.
+       Routing the song through an AudioContext is what makes phones cut playback when the screen locks. */
+    if (!eqCtx && (eqFlat() || !eqBuild())) { syncEqBtn(); return; }
     eqFilters.forEach((f, i) => { f.gain.value = S.eq[i]; });
     if (eqCtx.state !== 'running') eqCtx.resume().catch(() => {});
     syncEqBtn();
@@ -1266,6 +1268,21 @@
     const row = listEl.querySelector(`.row[data-id="${s.id}"]`);
     if (row) row.classList.add('playing');
     updateProgress(); updateMediaSession();
+    songSwap(s.id);
+  }
+
+  /* song change animation: the new cover, title and player-bar info slide + fade in, and the list row flashes */
+  let lastSwapId = '';
+  function songSwap(id) {
+    if (id === lastSwapId) return;
+    const first = !lastSwapId; lastSwapId = id;
+    if (first || REDUCED.matches) return;
+    const els = [$('.np-art'), $('.np-info'), $('.pl-meta'), $('.pl-left .thumb')].filter(Boolean);
+    els.forEach(el => el.classList.remove('song-swap'));
+    void document.body.offsetWidth;
+    els.forEach(el => el.classList.add('song-swap'));
+    clearTimeout(songSwap.t);
+    songSwap.t = setTimeout(() => els.forEach(el => el.classList.remove('song-swap')), 900);
   }
 
   /* ---------------------------- media session ----------------------------- */
