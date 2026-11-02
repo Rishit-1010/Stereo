@@ -580,8 +580,38 @@
       }).catch(() => { if (S.cur === s.id) { audio.src = s.src; audio.load(); if (S.wantPlay) playAudio(); } });
       return;
     }
+    if (nextPre.id === s.id && nextPre.url) { /* downloaded while the last song played: starts at once, no network needed (locked phone) */
+      offlineBlobUrl = nextPre.url; nextPre = { id: '', url: '' };
+      audio.src = offlineBlobUrl; audio.load();
+      return;
+    }
     audio.src = s.src;
     audio.load();
+  }
+
+  /* While a song plays, the next one is downloaded in the background. A locked phone throttles the network the moment
+     one song ends, so a song that still has to be fetched then often never starts; one already in memory starts at once. */
+  let nextPre = { id: '', url: '' }, preBusy = '';
+  function nextIdForPrefetch() {
+    if (S.repeatMode === 'one') return null;
+    const q = S.queue.length ? S.queue : lib.map(x => x.id);
+    const i = q.indexOf(S.cur);
+    if (i < 0 || !q.length) return null;
+    if (S.repeatMode === 'off' && i >= q.length - 1) return null;
+    return q[(i + 1) % q.length];
+  }
+  function prefetchNext() {
+    try {
+      const id = nextIdForPrefetch(); if (!id || id === S.cur || nextPre.id === id || preBusy === id) return;
+      const s = libMap.get(id);
+      if (!s || s.user || S.offline.has(id) || !s.src || /^(blob|data):/.test(s.src) || !window.fetch) return;
+      preBusy = id;
+      fetch(s.src, { mode: 'cors', cache: 'force-cache' }).then(r => r.ok ? r.blob() : Promise.reject()).then(b => {
+        if (preBusy !== id) return;
+        if (nextPre.url) URL.revokeObjectURL(nextPre.url);
+        nextPre = { id, url: URL.createObjectURL(b.type ? b : new Blob([b], { type: 'audio/mpeg' })) };
+      }).catch(() => {}).then(() => { if (preBusy === id) preBusy = ''; });
+    } catch (e) {}
   }
 
   function loadSong(id, autoplay) {
@@ -946,6 +976,7 @@
 
   /* audio events */
   audio.addEventListener('play', () => {
+    setTimeout(prefetchNext, 1500);
     coverSpinStart();
     initVisualizer();
     app.classList.add('is-playing');
