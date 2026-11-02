@@ -4,7 +4,7 @@
    - audio: not intercepted (offline songs are played from the cache by script.js) */
 'use strict';
 
-const CACHE = 'stereo-v11';
+const CACHE = 'stereo-v12';
 /* offline songs are cached here (kept across shell updates) */
 const AUDIO_CACHE = 'stereo-audio-v1';
 const SCOPE_PATH = new URL(self.registration.scope).pathname;

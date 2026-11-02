@@ -607,7 +607,7 @@
     updateMediaSession();
     const p = audio.play();
     if (p && p.catch) p.catch(err => {
-      if (err && err.name === 'NotAllowedError') return;
+      if (err && err.name === 'NotAllowedError') { setTimeout(resumeWhenReady, 400); return; }
       if (err && err.name === 'AbortError') return;
       failed();
     });
@@ -832,7 +832,7 @@
   const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)');
   const artWrap = $('.np-art'), artImg = $('#npArt'), plThumbEl = $('#plThumb');
   const RING_MS = 500;
-  const COVER_PULSE_MS = 1000; /* 0.5 s expand + 0.5 s contract — smoother than 0.25 s */
+  const COVER_PULSE_MS = 1000; /* 0.5 s expand + 0.5 s contract */
   let rLoop = 0, rEnv = 0, rLastT = 0, ringTimer = 0, pulseOrigin = 0;
 
   /* how far the cover swells and how far the rings travel, as multiples of its resting size (from CSS per layout) */
@@ -964,17 +964,29 @@
   audio.addEventListener('pause', () => {
     coverSettle(); reactRelease();
     app.classList.remove('is-playing'); stopRaf(); updateProgress();
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+    /* a song that just finished fires 'pause' right before 'ended': telling the phone "paused" here makes it drop the
+       lock-screen player, and then it refuses to start the next song. Only report paused for a real pause. */
+    if ('mediaSession' in navigator && !(audio.ended && S.wantPlay)) navigator.mediaSession.playbackState = 'paused';
     syncAutoTheme();
   });
   audio.addEventListener('ended', () => {
-    if (S.repeatMode === 'one') {
-      audio.currentTime = 0;
-      playAudio();
-    } else {
-      next(false);
+    /* everything here must run synchronously inside the event: a phone only lets a locked page start the next song
+       from the 'ended' event itself (no timers, no waiting), so nothing below may throw or defer */
+    try {
+      if (S.repeatMode === 'one') {
+        audio.currentTime = 0;
+        playAudio();
+      } else {
+        next(false);
+      }
+    } catch (e) {
+      try { const q = S.queue.length ? S.queue : lib.map(x => x.id); const i = q.indexOf(S.cur); audio.src = libMap.get(q[(i + 1) % q.length]).src; S.cur = q[(i + 1) % q.length]; audio.play(); } catch (e2) {}
     }
   });
+  /* if the phone refused play() for a moment (or the file was still loading), start as soon as there is data */
+  const resumeWhenReady = () => { if (S.wantPlay && audio.paused && !audio.ended && S.cur) playAudio(); };
+  audio.addEventListener('canplay', resumeWhenReady);
+  audio.addEventListener('loadeddata', resumeWhenReady);
   audio.addEventListener('timeupdate', updateProgress);
   audio.addEventListener('durationchange', () => { updateProgress(); updatePosition(); });
   audio.addEventListener('loadedmetadata', updateProgress);
@@ -1243,22 +1255,8 @@
   /* --------------------------- now-playing sync --------------------------- */
   function syncNow() {
     const s = libMap.get(S.cur); if (!s) return;
-    const npTitle = $('#npTitle'), npGenre = $('#npGenre');
-    const titleChanged = npTitle.textContent !== s.title;
-    $('#plTitle').textContent = npTitle.textContent = s.title;
-    $('#plGenre').textContent = npGenre.textContent = s.genre;
-    if (titleChanged) {
-      npTitle.classList.remove('song-switch');
-      npGenre.classList.remove('song-switch');
-      void npTitle.offsetWidth;
-      npTitle.classList.add('song-switch');
-      npGenre.classList.add('song-switch');
-      const clear = () => {
-        npTitle.classList.remove('song-switch');
-        npGenre.classList.remove('song-switch');
-      };
-      npTitle.addEventListener('animationend', clear, { once: true });
-    }
+    $('#plTitle').textContent = $('#npTitle').textContent = s.title;
+    $('#plGenre').textContent = $('#npGenre').textContent = s.genre;
     document.title = `${s.title} · Rishit’s Stereo`;
     $('#npDelete').hidden = !s.user;
     syncLike();
@@ -1303,7 +1301,7 @@
         album: 'Rishit’s Stereo',
         artwork: art ? [{ src: art, sizes: '512x512', type: 'image/png' }] : [{ src: icon, sizes: '512x512', type: 'image/svg+xml' }]
       });
-      navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+      navigator.mediaSession.playbackState = (audio.paused && !(S.wantPlay && audio.ended)) ? 'paused' : 'playing';
     } catch (e) {}
     updatePosition();
   }
