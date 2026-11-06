@@ -558,7 +558,7 @@ body.is-sorting { user-select: none; -webkit-user-select: none; }
 
 /* ------------------------------ bottom player --------------------------- */
 #player {
-  grid-column: 2; grid-row: 3; height: var(--bar-h); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: clamp(24px, 3vw, 48px); z-index: 5;
+  grid-column: 2; grid-row: 3; height: var(--bar-h); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); align-items: center; column-gap: clamp(24px, 3vw, 48px); z-index: 5;
   background: var(--glass); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); border-top: 1px solid var(--line);
 }
 .pl-left { display: flex; align-items: center; min-width: 0; padding-left: 26px; cursor: pointer; }
