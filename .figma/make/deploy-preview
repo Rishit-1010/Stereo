@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+rm -rf dist
+mkdir -p dist
+cp \
+  index.html style.css script.js songs.js sw.js manifest.webmanifest \
+  Logo.png favicon.ico icon.svg icon-192.png icon-512.png \
+  icon-maskable-512.png apple-touch-icon.png \
+  dist/
+cp -R tracks dist/
+
+[[ -d dist ]] || {
+  echo "Expected build output at dist" >&2
+  exit 1
+}
+
+figma make deploy-preview --build-dir dist
