@@ -17,12 +17,13 @@
   /* ------------------------------ constants ------------------------------- */
   const COL_TITLES = {
     all: 'All Tracks', phonk: 'Phonk', english: 'English & Other', hindi: 'Hindi/Gujarati',
-    instrumental: 'Instrumental', devotional: 'Devotional', recent: 'Recently Played', liked: 'Liked Songs'
+    instrumental: 'Instrumental', devotional: 'Devotional', recent: 'Recently Played', liked: 'Liked Songs', offline: 'Offline Songs'
   };
   const CAT_GENRE = { phonk: 'Phonk', english: 'English', hindi: 'Hindi/Gujarati', instrumental: 'Instrumental', devotional: 'Devotional' };
   const EMPTY_MSG = {
     recent: 'Nothing played yet — songs you play will show up here.',
     liked: 'No liked songs yet — tap the heart on any song to add it here.',
+    offline: 'No offline songs yet — use the download button on a song to save it for offline playback.',
     search: 'No songs match your search.',
     cat: 'No songs in this collection yet. Use “Add song” to upload one.'
   };
@@ -41,6 +42,7 @@
     id: 'd' + String(i + 1).padStart(2, '0'),
     title: s.t, cat: s.c, genre: s.g,
     duration: s.d || 0,
+    gain: s.n || 0, /* loudness offset in dB so every song plays at about the same level */
     src: toUrl(s.f),
     alt: s.r ? toUrl(s.r) : null, /* fallback link, tried once if the main file fails to load */
     user: false
@@ -305,6 +307,7 @@
         case 'all': list = lib; break;
         case 'recent': list = S.recent.map(id => libMap.get(id)).filter(Boolean); break;
         case 'liked': list = lib.filter(s => S.liked.has(s.id)); break;
+        case 'offline': list = lib.filter(s => S.offline.has(s.id)); break;
         default: list = lib.filter(s => s.cat === S.col);
       }
     }
@@ -522,6 +525,11 @@
   $('#search').addEventListener('keydown', e => { if (e.key === 'Enter') e.target.blur(); });
 
   /* ------------------------------ playback -------------------------------- */
+  /* Volume levelling: every song carries a measured offset (dB, never positive) that is applied on top of the volume
+     slider, so loud songs are brought down to the level of the quiet ones. It uses audio.volume only (no Web Audio),
+     so the lock screen and Bluetooth playback are untouched. */
+  const curGain = () => { const s = libMap.get(S.cur); return s && isFinite(s.gain) ? Math.pow(10, Math.min(0, s.gain) / 20) : 1; };
+  const effVol = () => Math.max(0, Math.min(1, S.vol * curGain()));
   audio.volume = S.vol;
   audio.loop = (S.repeatMode === 'one');
 
@@ -555,10 +563,10 @@
         let u = 0;
         const up = setInterval(() => {
           u++;
-          audio.volume = Math.min(S.vol, S.vol * (u / steps));
+          audio.volume = Math.min(effVol(), effVol() * (u / steps));
           if (u >= steps) {
             clearInterval(up);
-            audio.volume = S.vol;
+            audio.volume = effVol();
           }
         }, interval);
       }
@@ -600,6 +608,16 @@
     if (S.repeatMode === 'off' && i >= q.length - 1) return null;
     return q[(i + 1) % q.length];
   }
+  /* The next song is fetched only once the current one is fully buffered or nearly over, so the two downloads never
+     compete for a slow connection (that starved the playing song and made it stop). */
+  function maybePrefetch() {
+    try {
+      const c = navigator.connection; if (c && c.saveData) return;
+      const d = audio.duration; if (!isFinite(d) || d <= 0 || audio.paused) return;
+      const b = audio.buffered, end = b && b.length ? b.end(b.length - 1) : 0;
+      if (end >= d - 1 || d - audio.currentTime < 40) prefetchNext();
+    } catch (e) {}
+  }
   function prefetchNext() {
     try {
       const id = nextIdForPrefetch(); if (!id || id === S.cur || nextPre.id === id || preBusy === id) return;
@@ -625,6 +643,9 @@
       /* Prefer a fuller buffer so playback survives the screen turning off. */
       try { audio.preload = 'auto'; } catch (e) {}
       setAudioSource(s);
+      if (S.vol > 0 && !(S.crossfade && !audio.paused && !document.hidden)) audio.volume = effVol();
+      if (s.user && s.gain === undefined) levelUserSong(s);
+      resumeArmed = !!autoplay;
     }
     syncNow();
     updateMediaSession();
@@ -976,7 +997,6 @@
 
   /* audio events */
   audio.addEventListener('play', () => {
-    setTimeout(prefetchNext, 1500);
     coverSpinStart();
     initVisualizer();
     app.classList.add('is-playing');
@@ -1015,11 +1035,32 @@
     }
   });
   /* if the phone refused play() for a moment (or the file was still loading), start as soon as there is data */
-  const resumeWhenReady = () => { if (S.wantPlay && audio.paused && !audio.ended && S.cur) playAudio(); };
+  let resumeArmed = false; /* only while the player itself is starting a song (not after a Bluetooth/route pause) */
+  const resumeWhenReady = () => { if (resumeArmed && S.wantPlay && audio.paused && !audio.ended && S.cur) playAudio(); };
+  audio.addEventListener('playing', () => { resumeArmed = false; });
   audio.addEventListener('canplay', resumeWhenReady);
   audio.addEventListener('loadeddata', resumeWhenReady);
+  /* a streamed song that stalls (weak network, Bluetooth hand-over) is reconnected at the same spot instead of freezing */
+  let stallTimer = 0, stallTries = 0, stallSong = '';
+  const clearStall = () => { clearTimeout(stallTimer); stallTimer = 0; };
+  const onStall = () => {
+    if (stallTimer || !S.wantPlay || audio.paused || audio.ended || !S.cur) return;
+    stallTimer = setTimeout(() => {
+      stallTimer = 0;
+      if (!S.wantPlay || audio.ended || audio.readyState >= 3 || !audio.src) return;
+      if (stallSong !== S.cur) { stallSong = S.cur; stallTries = 0; }
+      if (++stallTries > 3) return;
+      const t = audio.currentTime, src = audio.currentSrc || audio.src;
+      resumeArmed = true;
+      audio.addEventListener('loadedmetadata', function once() { audio.removeEventListener('loadedmetadata', once); try { audio.currentTime = t; } catch (e) {} }, { once: true });
+      audio.src = src; audio.load(); playAudio();
+    }, 7000);
+  };
+  audio.addEventListener('waiting', onStall);
+  audio.addEventListener('stalled', onStall);
+  ['playing', 'canplaythrough', 'pause', 'emptied'].forEach(ev => audio.addEventListener(ev, clearStall));
   audio.addEventListener('timeupdate', updateProgress);
-  audio.addEventListener('durationchange', () => { updateProgress(); updatePosition(); });
+  audio.addEventListener('durationchange', () => { lastPosAt = 0; updateProgress(); updatePosition(); });
   audio.addEventListener('loadedmetadata', updateProgress);
   audio.addEventListener('error', () => {
     if (!audio.src) return;
@@ -1059,20 +1100,31 @@
     if (wrap) wrap.style.setProperty('--p', String(frac));
   }
 
+  /* Runs on every animation frame while playing, so it must stay cheap. It used to rewrite the time labels and push the
+     position to the phone's media session ~60 times a second; with a Bluetooth speaker or headphones connected that
+     floods the Bluetooth link (the speaker is sent every update) and the page starts lagging and the audio drops. */
+  const timeEls = ['#plTime', '#npTime'].map(q => $(q)), durEl = $('#npDur');
+  let lastTx = '', lastDx = '', lastFrac = -1, lastPosAt = 0;
   function updateProgress() {
     const d = audio.duration, t = audio.currentTime;
     const ok = isFinite(d) && d > 0;
     const frac = ok ? Math.min(1, t / d) : 0;
-    seeks.forEach(el => {
-      el.disabled = !ok;
-      if (!dragging.has(el)) el.value = String(Math.round(frac * 1000));
-      setRange(el, dragging.has(el) ? el.value / 1000 : frac);
-    });
+    if (Math.abs(frac - lastFrac) > 0.0004 || frac === 0 || frac === 1) {
+      lastFrac = frac;
+      seeks.forEach(el => {
+        el.disabled = !ok;
+        if (!dragging.has(el)) el.value = String(Math.round(frac * 1000));
+        setRange(el, dragging.has(el) ? el.value / 1000 : frac);
+      });
+    }
     const tx = fmt(t);
-    $('#plTime').textContent = tx; $('#npTime').textContent = tx;
-    $('#npDur').textContent = fmt(ok ? d : 0); /* total length, shown at the end of the bar */
-    $$('#plTime, #npTime').forEach(el => el.title = ok ? `${tx} / ${fmt(d)}` : tx);
-    if (ok) updatePosition();
+    if (tx !== lastTx) {
+      lastTx = tx;
+      timeEls.forEach(el => { if (el) { el.textContent = tx; el.title = ok ? `${tx} / ${fmt(d)}` : tx; } });
+    }
+    const dx = fmt(ok ? d : 0);
+    if (dx !== lastDx) { lastDx = dx; if (durEl) durEl.textContent = dx; } /* total length, shown at the end of the bar */
+    if (ok && Date.now() - lastPosAt > 5000) { lastPosAt = Date.now(); updatePosition(); maybePrefetch(); }
   }
 
   seeks.forEach(el => {
@@ -1089,7 +1141,7 @@
 
   /* volume */
   function applyVolume() {
-    audio.volume = S.vol; audio.muted = S.muted;
+    audio.volume = effVol(); audio.muted = S.muted;
     vols.forEach(el => { el.value = String(Math.round(S.vol * 100)); setRange(el, S.vol); });
     app.classList.toggle('muted', S.muted || S.vol === 0);
   }
@@ -1442,11 +1494,11 @@
   function finishSleep() {
     clearInterval(sleepInt); clearInterval(fadeInt); fadeInt = 0; sleepEnd = 0;
     S.wantPlay = false;
-    audio.pause(); audio.volume = S.vol;
+    audio.pause(); audio.volume = effVol();
     renderSleep(); toast('Sleep timer finished — music stopped', 4500);
   }
   function cancelSleep() {
-    clearInterval(sleepInt); clearInterval(fadeInt); fadeInt = 0; sleepEnd = 0; audio.volume = S.vol; renderSleep();
+    clearInterval(sleepInt); clearInterval(fadeInt); fadeInt = 0; sleepEnd = 0; audio.volume = effVol(); renderSleep();
     toast('Sleep timer cancelled', 1800);
   }
   function openSleep() { renderSleep(); $('#sleepNote').hidden = true; openModal($('#sleepModal')); }
@@ -1568,7 +1620,7 @@
     del(id) { return this.tx('readwrite', st => st.delete(id)); }
   };
 
-  const toSong = rec => ({ id: rec.id, title: rec.title, cat: rec.cat, genre: CAT_GENRE[rec.cat] || 'Other', duration: rec.duration || 0, src: URL.createObjectURL(rec.blob), user: true });
+  const toSong = rec => ({ id: rec.id, title: rec.title, cat: rec.cat, genre: CAT_GENRE[rec.cat] || 'Other', duration: rec.duration || 0, gain: typeof rec.n === 'number' ? rec.n : undefined, src: URL.createObjectURL(rec.blob), user: true });
 
   const getAudioDuration = file => new Promise(res => {
     try {
@@ -1579,6 +1631,38 @@
     } catch (e) { res(0); }
   });
 
+  /* Songs you add yourself have no measured offset, so it is worked out here once: the file is decoded, its average
+     loudness is estimated (LUFS-like) and brought down to the same -14 level as the built-in songs. */
+  async function measureGainDb(blob) {
+    try {
+      if (!blob || blob.size > 30 * 1024 * 1024) return 0;
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return 0;
+      const ctx = new AC();
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      ctx.close && ctx.close();
+      let sum = 0, cnt = 0;
+      for (let c = 0; c < buf.numberOfChannels; c++) {
+        const d = buf.getChannelData(c);
+        for (let i = 0; i < d.length; i += 2) { sum += d[i] * d[i]; cnt++; }
+      }
+      if (!cnt || sum <= 0) return 0;
+      const lufs = 10 * Math.log10(sum / cnt * Math.max(1, buf.numberOfChannels)) + MEASURE_OFFSET;
+      return Math.round(Math.min(0, -14 - lufs) * 10) / 10;
+    } catch (e) { return 0; }
+  }
+  const MEASURE_OFFSET = -0.4; /* calibrated against ffmpeg loudness on the built-in songs */
+  async function levelUserSong(s) {
+    s.gain = 0;
+    try {
+      const b = await (await fetch(s.src)).blob();
+      const n = await measureGainDb(b);
+      s.gain = n;
+      if (S.cur === s.id) applyVolume();
+      const recs = await DB.all(); const rec = recs.find(r => r && r.id === s.id);
+      if (rec) { rec.n = n; await DB.put(rec); }
+    } catch (e) {}
+  }
+
   $('#addConfirm').addEventListener('click', async () => {
     if (!pending.length) return;
     const files = pending; pending = [];
@@ -1587,7 +1671,8 @@
     for (const f of files) {
       const title = (files.length === 1 ? $('#songName').value.trim() : '') || cleanName(f.name) || 'Untitled';
       const dur = await getAudioDuration(f);
-      const rec = { id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, cat: pickedCat, duration: dur, blob: f, mime: f.type || 'audio/mpeg', added: Date.now() };
+      const n = await measureGainDb(f);
+      const rec = { id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, cat: pickedCat, duration: dur, n, blob: f, mime: f.type || 'audio/mpeg', added: Date.now() };
       try { await DB.put(rec); } catch (e) { savedOk = false; }
       const song = toSong(rec); userSongs.push(song); added.push(song);
     }
