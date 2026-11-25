@@ -348,7 +348,7 @@
     <h2 class="sheet-title" id="speedTitle">How fast should it play?</h2>
 
     <div class="speed-now">
-      <span>Current speed <b id="speedVal">1x</b></span>
+      <span>Current speed <b id="speedVal">1x</b><em id="speedName"></em></span>
       <button type="button" id="speedReset" hidden>Reset to 1x</button>
     </div>
 
@@ -364,11 +364,26 @@
     </div>
 
     <hr class="sheet-rule">
+    <p class="eyebrow">SLOWED &amp; SPED UP</p>
+    <p class="speed-hint">Like the slowed and sped-up versions on YouTube: the song gets slower or faster and its pitch moves with it.</p>
+    <div class="chips style-chips" id="styleChips">
+      <button type="button" class="chip" data-s="0.85" data-p="1"><b>Slowed</b><span>0.85x</span></button>
+      <button type="button" class="chip" data-s="0.75" data-p="1"><b>Very slowed</b><span>0.75x</span></button>
+      <button type="button" class="chip" data-s="0.65" data-p="1"><b>Ultra slowed</b><span>0.65x</span></button>
+      <button type="button" class="chip" data-s="1.15" data-p="1"><b>Sped up</b><span>1.15x</span></button>
+      <button type="button" class="chip" data-s="1.3" data-p="1"><b>Very sped up</b><span>1.3x</span></button>
+      <button type="button" class="chip" data-s="1.5" data-p="1"><b>Ultra sped up</b><span>1.5x</span></button>
+    </div>
+
+    <hr class="sheet-rule">
     <p class="eyebrow">CUSTOM SPEED</p>
     <div class="speed-custom">
       <input class="range" id="speedRange" type="range" min="0.1" max="2" step="0.05" value="1" aria-label="Custom playback speed">
       <div class="speed-scale"><span>0.1x</span><span>2x</span></div>
     </div>
+    <button type="button" class="speed-switch" id="speedPitch" role="switch" aria-checked="false">
+      <span class="sw-text"><b>Pitch follows speed</b><small id="speedPitchNote">Original pitch</small></span><i class="sw-knob"></i>
+    </button>
   </div>
 </div>
 

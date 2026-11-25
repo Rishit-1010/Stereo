@@ -1529,6 +1529,11 @@
   };
   const fmtSpeed = v => Number(v.toFixed(2)) + 'x';
   let speed = clampSpeed(store.get('speed', 1));
+  /* "Slowed" / "sped up" edits (the YouTube kind) are simply the song played slower or faster with the pitch moving along
+     with the speed, like a tape or record. That is what pitchMode does: preservesPitch off. The plain speed buttons keep the
+     pitch unchanged (time-stretch). All native, no extra audio file and no Web Audio, so the lock screen is unaffected. */
+  let pitchMode = !!store.get('speedPitch', false);
+  const SPEED_NAMES = { 0.65: 'Ultra slowed', 0.75: 'Very slowed', 0.85: 'Slowed', 1.15: 'Sped up', 1.3: 'Very sped up', 1.5: 'Ultra sped up' };
 
   function renderSpeed() {
     const label = fmtSpeed(speed);
@@ -1537,32 +1542,46 @@
     speedRange.value = String(speed);
     speedRange.setAttribute('aria-valuetext', label);
     setRange(speedRange, (speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN));
-    $$('#speedChips .chip').forEach(c => c.classList.toggle('on', Math.abs(Number(c.dataset.s) - speed) < 0.001));
+    const lit = c => Math.abs(Number(c.dataset.s) - speed) < 0.001 && (speed === 1 || pitchMode === (c.dataset.p === '1'));
+    $$('#speedChips .chip, #styleChips .chip').forEach(c => c.classList.toggle('on', lit(c)));
+    const sw = $('#speedPitch');
+    if (sw) { sw.setAttribute('aria-checked', String(pitchMode)); sw.classList.toggle('on', pitchMode); }
+    const nm = pitchMode && speed !== 1 ? (SPEED_NAMES[speed] || (speed < 1 ? 'Slowed' : 'Sped up')) : '';
+    $('#speedName').textContent = nm ? ' · ' + nm : '';
+    $('#speedPitchNote').textContent = speed === 1 ? 'Original pitch'
+      : pitchMode ? `Pitch ${speed < 1 ? 'lower' : 'higher'}, ${(12 * Math.log2(speed)).toFixed(1).replace(/^(\d)/, '+$1')} semitones`
+      : 'Pitch unchanged';
     $$('[data-act="speed"]').forEach(b => {
       b.classList.toggle('active', speed !== 1);
       b.title = 'Playback speed — ' + label;
       b.setAttribute('aria-label', 'Playback speed, ' + label);
     });
   }
-  function applySpeed(v, save) {
+  function applySpeed(v, save, pitch) {
     speed = clampSpeed(v);
+    if (typeof pitch === 'boolean') { pitchMode = pitch; store.set('speedPitch', pitchMode); }
     /* defaultPlaybackRate matters: loading a new song resets playbackRate to it */
     audio.defaultPlaybackRate = speed;
     audio.playbackRate = speed;
-    audio.preservesPitch = true; audio.mozPreservesPitch = true; audio.webkitPreservesPitch = true; /* slower / faster, same pitch */
+    const keep = !pitchMode; audio.preservesPitch = keep; audio.mozPreservesPitch = keep; audio.webkitPreservesPitch = keep;
     if (save !== false) store.set('speed', speed);
     renderSpeed();
     updatePosition();
   }
-  audio.addEventListener('loadstart', () => { audio.playbackRate = speed; });
+  audio.addEventListener('loadstart', () => { audio.playbackRate = speed; audio.preservesPitch = audio.mozPreservesPitch = audio.webkitPreservesPitch = !pitchMode; });
 
   function openSpeed() { renderSpeed(); openModal($('#speedModal')); }
   $('#speedChips').addEventListener('click', e => {
     const c = e.target.closest('.chip'); if (!c) return;
-    applySpeed(c.dataset.s);
+    applySpeed(c.dataset.s, true, false);
   });
+  $('#styleChips').addEventListener('click', e => {
+    const c = e.target.closest('.chip'); if (!c) return;
+    applySpeed(c.dataset.s, true, true);
+  });
+  $('#speedPitch').addEventListener('click', () => applySpeed(speed, true, !pitchMode));
   speedRange.addEventListener('input', () => applySpeed(speedRange.value));
-  $('#speedReset').addEventListener('click', () => applySpeed(1));
+  $('#speedReset').addEventListener('click', () => applySpeed(1, true, false));
   applySpeed(speed, false);
 
   /* ------------------------------ add a song ------------------------------ */
