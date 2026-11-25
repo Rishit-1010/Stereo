@@ -1533,7 +1533,7 @@
      with the speed, like a tape or record. That is what pitchMode does: preservesPitch off. The plain speed buttons keep the
      pitch unchanged (time-stretch). All native, no extra audio file and no Web Audio, so the lock screen is unaffected. */
   let pitchMode = !!store.get('speedPitch', false);
-  const SPEED_NAMES = { 0.65: 'Ultra slowed', 0.75: 'Very slowed', 0.85: 'Slowed', 1.15: 'Sped up', 1.3: 'Very sped up', 1.5: 'Ultra sped up' };
+  const SPEED_NAMES = { 0.55: 'Ultra slowed', 0.65: 'Super slowed', 0.75: 'Very slowed', 0.85: 'Slowed', 1.15: 'Sped up' };
 
   function renderSpeed() {
     const label = fmtSpeed(speed);
@@ -1543,7 +1543,7 @@
     speedRange.setAttribute('aria-valuetext', label);
     setRange(speedRange, (speed - SPEED_MIN) / (SPEED_MAX - SPEED_MIN));
     const lit = c => Math.abs(Number(c.dataset.s) - speed) < 0.001 && (speed === 1 || pitchMode === (c.dataset.p === '1'));
-    $$('#speedChips .chip, #styleChips .chip').forEach(c => c.classList.toggle('on', lit(c)));
+    $$('#styleChips .chip').forEach(c => c.classList.toggle('on', lit(c)));
     const sw = $('#speedPitch');
     if (sw) { sw.setAttribute('aria-checked', String(pitchMode)); sw.classList.toggle('on', pitchMode); }
     const nm = pitchMode && speed !== 1 ? (SPEED_NAMES[speed] || (speed < 1 ? 'Slowed' : 'Sped up')) : '';
@@ -1571,13 +1571,9 @@
   audio.addEventListener('loadstart', () => { audio.playbackRate = speed; audio.preservesPitch = audio.mozPreservesPitch = audio.webkitPreservesPitch = !pitchMode; });
 
   function openSpeed() { renderSpeed(); openModal($('#speedModal')); }
-  $('#speedChips').addEventListener('click', e => {
-    const c = e.target.closest('.chip'); if (!c) return;
-    applySpeed(c.dataset.s, true, false);
-  });
   $('#styleChips').addEventListener('click', e => {
     const c = e.target.closest('.chip'); if (!c) return;
-    applySpeed(c.dataset.s, true, true);
+    applySpeed(c.dataset.s, true, c.dataset.p === '1');
   });
   $('#speedPitch').addEventListener('click', () => applySpeed(speed, true, !pitchMode));
   speedRange.addEventListener('input', () => applySpeed(speedRange.value));

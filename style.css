@@ -1043,7 +1043,7 @@ body.no-react .is-playing .np-glow {
 /* ------------------------------ slowed / sped-up styles ------------------------------ */
 .speed-hint { margin: 6px 0 0; font: 400 13px/1.4 var(--f-karla); color: var(--muted); }
 .speed-now em { font: 600 14px/1 var(--f-park); font-style: normal; color: var(--accent); }
-.style-chips { grid-template-columns: repeat(3, 1fr); margin-top: 14px; }
+.style-chips { grid-template-columns: repeat(3, 1fr); margin-top: 16px; }
 .style-chips .chip { aspect-ratio: auto; height: 64px; gap: 6px; padding: 0 4px; }
 .style-chips .chip b { font: 700 15px/1.1 var(--f-park); text-align: center; }
 .style-chips .chip span { font: 400 12px/1 var(--f-anta, var(--f-karla)); font-variant-numeric: tabular-nums; }
