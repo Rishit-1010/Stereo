@@ -1533,7 +1533,7 @@
      with the speed, like a tape or record. That is what pitchMode does: preservesPitch off. The plain speed buttons keep the
      pitch unchanged (time-stretch). All native, no extra audio file and no Web Audio, so the lock screen is unaffected. */
   const pitchMode = true; /* pitch always follows the speed */
-  const SPEED_NAMES = { 0.65: 'Ultra slowed', 0.7: 'Super slowed', 0.8: 'Very slowed', 0.9: 'Slowed', 1.15: 'Sped up' };
+  const SPEED_NAMES = { 0.7: 'Ultra slowed', 0.75: 'Super slowed', 0.8: 'Very slowed', 0.9: 'Slowed', 1.15: 'Sped up' };
 
   function renderSpeed() {
     const label = fmtSpeed(speed);
